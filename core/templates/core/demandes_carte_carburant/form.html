@@ -1,0 +1,191 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">{{ title }}</h4>
+                    <div class="card-tools">
+                        <a href="{% url 'demandes_carte_carburant_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour à la liste
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        {% for field in form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {% if field.name == 'km_vehicule' %}
+                            <div class="input-group">
+                                {{ field }}
+                                <span class="input-group-text" style="background-color: #ffff00; color: #000000; font-weight: bold;">
+                                    Km actuel: {{ demande.vehicule.kilometrage }}
+                                </span>
+                            </div>
+                            {% else %}
+                            {{ field }}
+                            {% endif %}
+                            {% if field.errors %}
+                            <div class="text-danger">
+                                {% for error in field.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Affichage du montant calculé uniquement pour la clôture de demande -->
+                        {% if 'cloturer' in request.path %}
+                        <div class="form-group">
+                            <label>Montant calculé (XOF)</label>
+                            <input type="text" id="montant_calcule" class="form-control" readonly>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> {{ submit_text|default:"Enregistrer" }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Récupérer les champs du formulaire
+        const prixUnitaireField = document.getElementById('id_prix_unitaire_ttc');
+        const volumeField = document.getElementById('id_volume');
+        const montantCalculeField = document.getElementById('montant_calcule');
+        const carteCarburantField = document.getElementById('id_carte_carburant');
+        const ancienSoldeField = document.getElementById('id_ancien_solde_affichage');
+        const serviceField = document.getElementById('id_service');
+        const dotationField = document.getElementById('id_dotation_source');
+        
+        // Fonction pour calculer et afficher le montant
+        function calculerMontant() {
+            const prixUnitaire = parseFloat(prixUnitaireField.value) || 0;
+            const volume = parseFloat(volumeField.value) || 0;
+            const montant = prixUnitaire * volume;
+            
+            // Formater le montant avec séparateur de milliers
+            montantCalculeField.value = new Intl.NumberFormat('fr-FR').format(montant) + ' XOF';
+        }
+        
+        // Fonction pour récupérer et afficher le solde de la carte sélectionnée
+        function updateAncienSolde() {
+            if (carteCarburantField && ancienSoldeField) {
+                const carteId = carteCarburantField.value;
+                if (carteId) {
+                    // Récupérer l'option sélectionnée
+                    const selectedOption = carteCarburantField.options[carteCarburantField.selectedIndex];
+                    // Extraire le solde de l'option (format: "Carte XXXXX - Solde: XXX XXX XOF")
+                    const optionText = selectedOption.text;
+                    const soldeMatch = optionText.match(/Solde: ([\d\s]+) XOF/);
+                    if (soldeMatch && soldeMatch[1]) {
+                        ancienSoldeField.value = soldeMatch[1] + ' XOF';
+                    } else {
+                        ancienSoldeField.value = '';
+                    }
+                } else {
+                    ancienSoldeField.value = '';
+                }
+            }
+        }
+        
+        // Fonction pour filtrer les cartes en fonction de la dotation sélectionnée
+        function filterCartesByDotation() {
+            if (dotationField && carteCarburantField) {
+                const dotationValue = dotationField.value;
+                const serviceId = serviceField ? serviceField.value : null;
+                
+                if (dotationValue && serviceId) {
+                    // Appel AJAX pour récupérer les cartes associées à la dotation
+                    fetch(`/api/cartes-by-dotation/?dotation_source=${dotationValue}&service_id=${serviceId}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.cartes) {
+                            // Vider les options actuelles
+                            carteCarburantField.innerHTML = '';
+                            
+                            // Ajouter l'option vide par défaut
+                            const emptyOption = document.createElement('option');
+                            emptyOption.value = '';
+                            emptyOption.textContent = '---------';
+                            carteCarburantField.appendChild(emptyOption);
+                            
+                            // Ajouter les nouvelles options
+                            data.cartes.forEach(carte => {
+                                const option = document.createElement('option');
+                                option.value = carte.id;
+                                option.textContent = carte.label;
+                                carteCarburantField.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Erreur lors de la récupération des cartes:', error));
+                }
+            }
+        }
+        
+        // Ajouter les écouteurs d'événements
+        if (prixUnitaireField && volumeField) {
+            prixUnitaireField.addEventListener('input', calculerMontant);
+            volumeField.addEventListener('input', calculerMontant);
+            // Calculer le montant initial si les champs sont déjà remplis
+            calculerMontant();
+        }
+        
+        // Ajouter l'écouteur d'événement pour la carte carburant
+        if (carteCarburantField) {
+            carteCarburantField.addEventListener('change', updateAncienSolde);
+            // Mettre à jour le solde initial si une carte est déjà sélectionnée
+            updateAncienSolde();
+        }
+        
+        // Ajouter l'écouteur d'événement pour la dotation
+        if (dotationField) {
+            dotationField.addEventListener('change', filterCartesByDotation);
+        }
+        
+        // Ajouter l'écouteur d'événement pour le service
+        if (serviceField) {
+            serviceField.addEventListener('change', function() {
+                // Réinitialiser la dotation et la carte
+                if (dotationField) dotationField.value = '';
+                if (carteCarburantField) {
+                    carteCarburantField.innerHTML = '<option value="">---------</option>';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

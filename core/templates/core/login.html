@@ -1,0 +1,76 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Connexion - FMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row vh-100">
+        <!-- Partie gauche avec image et texte -->
+        <div class="col-md-6 d-none d-md-flex flex-column justify-content-center align-items-center bg-primary bg-gradient text-white p-5">
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold mb-4">FMS</h1>
+                <h3 class="mb-4">Fleet Management System</h3>
+                <p class="lead mb-5">Système de gestion de flotte automobile développé pour optimiser la gestion des véhicules, du carburant, de la maintenance, des assurances, des visites techniques, des courses et de la distribution de courrier.</p>
+                <img src="{% static 'core/img/car-fleet.svg' %}" alt="Fleet Management" class="img-fluid" style="max-width: 400px;">
+            </div>
+        </div>
+        
+        <!-- Partie droite avec formulaire de connexion -->
+        <div class="col-md-6 d-flex align-items-center justify-content-center">
+            <div class="card border-0 shadow-lg" style="width: 400px; max-width: 100%;">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <img src="{% static 'core/img/logo.svg' %}" alt="Logo" class="mb-4" style="height: 60px;">
+                        <h2 class="fw-bold">Connexion</h2>
+                        <p class="text-muted">Entrez vos identifiants pour accéder à votre compte</p>
+                    </div>
+                    
+                    {% if messages %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {% for message in messages %}
+                            {{ message }}
+                        {% endfor %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="email" class="form-label fw-semibold">Adresse email</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-primary"></i></span>
+                                <input type="email" class="form-control bg-light border-start-0" id="email" name="email" placeholder="exemple@email.com" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between">
+                                <label for="password" class="form-label fw-semibold">Mot de passe</label>
+                                <a href="#" class="text-decoration-none small">Mot de passe oublié ?</a>
+                            </div>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-primary"></i></span>
+                                <input type="password" class="form-control bg-light border-start-0" id="password" name="password" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">Se souvenir de moi</label>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <p class="text-muted mb-0">Vous n'avez pas de compte ? <br>Contactez l'administrateur système.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

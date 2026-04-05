@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>État des ravitaillements de carburant</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .header p {
+            font-size: 12px;
+            margin: 5px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .totals {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .total-box {
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 30%;
+            text-align: center;
+        }
+        .total-box h3 {
+            margin: 0;
+            font-size: 14px;
+        }
+        .total-box p {
+            margin: 5px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 10px;
+            text-align: center;
+            color: #666;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            max-width: 150px;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .footer-row {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        {% if logo_base64 %}
+        <div class="logo">
+            <img src="data:image/jpeg;base64,{{ logo_base64 }}" alt="Logo">
+        </div>
+        {% endif %}
+        <h1>ÉTAT DES RAVITAILLEMENTS DE CARBURANT</h1>
+        <p>Date de génération : {{ date_generation|date:"d/m/Y H:i" }}</p>
+        <p>Généré par : {{ utilisateur }}</p>
+    </div>
+    
+    <div class="totals">
+        <div class="total-box">
+            <h3>Total Ravitaillements</h3>
+            <p>{{ total_ravitaillements }}</p>
+        </div>
+        <div class="total-box">
+            <h3>Volume Total</h3>
+            <p>{{ total_volume|floatformat:2 }} litres</p>
+        </div>
+        <div class="total-box">
+            <h3>Montant Total</h3>
+            <p>{{ total_montant|floatformat:0 }} FCFA</p>
+        </div>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Service</th>
+                <th>Véhicule</th>
+                <th>Chauffeur</th>
+                <th>Carte</th>
+                <th>Volume (L)</th>
+                <th>Montant (FCFA)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ravitaillement in ravitaillements %}
+            <tr>
+                <td>{{ ravitaillement.date_ravitaillement|date:"d/m/Y" }}</td>
+                <td>{{ ravitaillement.service.nom_service }}</td>
+                <td>{{ ravitaillement.vehicule }}</td>
+                <td>{{ ravitaillement.utilisateur_demandeur.nom_complet }}</td>
+                <td>
+                    {% if ravitaillement.get_carte_carburant %}
+                        {{ ravitaillement.get_carte_carburant.numero_carte }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td class="text-right">{{ ravitaillement.volume|floatformat:2 }}</td>
+                <td class="text-right">{{ ravitaillement.montant_ttc|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="footer-row">
+                <td colspan="5" class="text-right">Total :</td>
+                <td class="text-right">{{ total_volume|floatformat:2 }}</td>
+                <td class="text-right">{{ total_montant|floatformat:0 }}</td>
+            </tr>
+        </tfoot>
+    </table>
+    
+    <div class="footer">
+        <p>Systu00e8me de Gestion des Cartes Carburant - {{ date_generation|date:"Y" }}</p>
+        <p>Ce document est gu00e9nu00e9ru00e9 automatiquement et ne nu00e9cessite pas de signature.</p>
+    </div>
+</body>
+</html>

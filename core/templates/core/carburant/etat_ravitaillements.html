@@ -1,0 +1,349 @@
+{% extends 'core/base.html' %}
+
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">État des ravitaillements de carburant</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Formulaire de filtres -->
+                    <form method="post" id="filter-form">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="date_debut">Date début</label>
+                                    <input type="date" class="form-control" id="date_debut" name="date_debut">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="date_fin">Date fin</label>
+                                    <input type="date" class="form-control" id="date_fin" name="date_fin">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="service">Service</label>
+                                    <select class="form-control" id="service" name="service">
+                                        <option value="tous">Tous les services</option>
+                                        {% for service in services %}
+                                        <option value="{{ service.id_service }}">{{ service.nom_service }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="dotation">Dotation</label>
+                                    <select class="form-control" id="dotation" name="dotation">
+                                        <option value="tous">Toutes les dotations</option>
+                                        <optgroup label="Achats HT">
+                                            {% for achat_ht in achats_ht %}
+                                            <option value="ht_{{ achat_ht.pk }}" data-service="{{ achat_ht.service.id_service }}">{{ achat_ht.libelle }}</option>
+                                            {% endfor %}
+                                        </optgroup>
+                                        <optgroup label="Achats TTC">
+                                            {% for achat_ttc in achats_ttc %}
+                                            <option value="ttc_{{ achat_ttc.pk }}" data-service="{{ achat_ttc.service.id_service }}">{{ achat_ttc.libelle }}</option>
+                                            {% endfor %}
+                                        </optgroup>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="carte">Carte carburant</label>
+                                    <select class="form-control" id="carte" name="carte">
+                                        <option value="tous">Toutes les cartes</option>
+                                        {% for carte in cartes %}
+                                        <option value="{{ carte.id_carte }}" data-dotation="">{{ carte.numero_carte }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="vehicule">Véhicule</label>
+                                    <select class="form-control" id="vehicule" name="vehicule">
+                                        <option value="tous">Tous les véhicules</option>
+                                        {% for vehicule in vehicules %}
+                                        <option value="{{ vehicule.id_vehicule }}">{{ vehicule }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="chauffeur">Chauffeur</label>
+                                    <select class="form-control" id="chauffeur" name="chauffeur">
+                                        <option value="tous">Tous les chauffeurs</option>
+                                        {% for chauffeur in chauffeurs %}
+                                        <option value="{{ chauffeur.id_utilisateur }}">{{ chauffeur.nom_complet }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary" id="btn-filtrer">Filtrer</button>
+                                <button type="button" class="btn btn-secondary ml-2" id="btn-reinitialiser">Réinitialiser</button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Script pour gérer les dépendances entre les filtres -->
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const serviceSelect = document.getElementById('service');
+                            const dotationSelect = document.getElementById('dotation');
+                            const carteSelect = document.getElementById('carte');
+                            const resetButton = document.getElementById('btn-reinitialiser');
+                            
+                            // Fonction pour filtrer les dotations en fonction du service sélectionné
+                            function filterDotationsByService() {
+                                const serviceId = serviceSelect.value;
+                                const dotationOptions = dotationSelect.querySelectorAll('option:not(:first-child)');
+                                
+                                // Réinitialiser d'abord le select de dotation
+                                dotationSelect.value = 'tous';
+                                
+                                // Si 'tous' est sélectionné, afficher toutes les dotations
+                                if (serviceId === 'tous') {
+                                    dotationOptions.forEach(option => {
+                                        option.style.display = '';
+                                    });
+                                } else {
+                                    // Sinon, filtrer par service
+                                    dotationOptions.forEach(option => {
+                                        const optionServiceId = option.getAttribute('data-service');
+                                        if (optionServiceId === serviceId) {
+                                            option.style.display = '';
+                                        } else {
+                                            option.style.display = 'none';
+                                        }
+                                    });
+                                }
+                                
+                                // Réinitialiser également les cartes
+                                filterCartesByDotation();
+                            }
+                            
+                            // Fonction pour filtrer les cartes en fonction de la dotation sélectionnée
+                            function filterCartesByDotation() {
+                                const dotationId = dotationSelect.value;
+                                const carteOptions = carteSelect.querySelectorAll('option:not(:first-child)');
+                                
+                                // Réinitialiser d'abord le select de carte
+                                carteSelect.value = 'tous';
+                                
+                                // Si 'tous' est sélectionné, afficher toutes les cartes
+                                if (dotationId === 'tous') {
+                                    carteOptions.forEach(option => {
+                                        option.style.display = '';
+                                    });
+                                } else {
+                                    // Sinon, filtrer par dotation (via AJAX)
+                                    fetch(`/api/cartes-by-dotation/?dotation=${dotationId}`)
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            // Vider le select des cartes sauf l'option "Toutes les cartes"
+                                            while (carteSelect.options.length > 1) {
+                                                carteSelect.remove(1);
+                                            }
+                                            
+                                            // Ajouter uniquement les cartes associées à la dotation
+                                            if (data.cartes_data && data.cartes_data.length > 0) {
+                                                data.cartes_data.forEach(carte => {
+                                                    const option = document.createElement('option');
+                                                    option.value = carte.id;
+                                                    option.textContent = carte.numero;
+                                                    carteSelect.appendChild(option);
+                                                });
+                                            } else {
+                                                // Si aucune carte n'est associée, afficher un message
+                                                const option = document.createElement('option');
+                                                option.value = '';
+                                                option.disabled = true;
+                                                option.textContent = 'Aucune carte associée à cette dotation';
+                                                carteSelect.appendChild(option);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Erreur lors de la récupération des cartes:', error);
+                                        });
+                                }
+                            }
+                            
+                            // Événements pour les changements de sélection
+                            serviceSelect.addEventListener('change', filterDotationsByService);
+                            dotationSelect.addEventListener('change', filterCartesByDotation);
+                            
+                            // Réinitialisation des filtres
+                            resetButton.addEventListener('click', function() {
+                                document.getElementById('filter-form').reset();
+                                // Réinitialiser l'affichage des options
+                                const allOptions = document.querySelectorAll('select option');
+                                allOptions.forEach(option => {
+                                    option.style.display = '';
+                                });
+                            });
+                        });
+                    </script>
+                    
+                    <!-- Résultats et exports -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5>Résultats ({{ total_ravitaillements }} ravitaillements)</h5>
+                                </div>
+                                <div>
+                                    <form method="post" id="export-form" class="d-inline">
+                                        {% csrf_token %}
+                                        <!-- Copier les valeurs des filtres via JavaScript -->
+                                        <input type="hidden" name="export_format" id="export_format" value="">
+                                        <button type="button" class="btn btn-success" onclick="exportData('pdf')"><i class="fas fa-file-pdf"></i> Exporter en PDF</button>
+                                        <button type="button" class="btn btn-info" onclick="exportData('excel')"><i class="fas fa-file-excel"></i> Exporter en Excel</button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <!-- Totaux -->
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card bg-primary text-white">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Total Ravitaillements</h5>
+                                            <h3>{{ total_ravitaillements }}</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-success text-white">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Volume Total</h5>
+                                            <h3>{{ total_volume|floatformat:2 }} litres</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-info text-white">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Montant Total</h5>
+                                            <h3>{{ total_montant|intcomma }} FCFA</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tableau des résultats -->
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped">
+                                    <thead class="thead-dark">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Date</th>
+                                            <th>Service</th>
+                                            <th>Véhicule</th>
+                                            <th>Chauffeur</th>
+                                            <th>Carte</th>
+                                            <th>Dotation</th>
+                                            <th>Volume (L)</th>
+                                            <th>Montant (FCFA)</th>
+                                            <th>Kilométrage</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for ravitaillement in ravitaillements %}
+                                        <tr>
+                                            <td>{{ ravitaillement.id_demande }}</td>
+                                            <td>{{ ravitaillement.date_ravitaillement|date:"d/m/Y" }}</td>
+                                            <td>{{ ravitaillement.service.nom_service }}</td>
+                                            <td>{{ ravitaillement.vehicule }}</td>
+                                            <td>{{ ravitaillement.utilisateur_demandeur.nom_complet }}</td>
+                                            <td>
+                                                {% if ravitaillement.get_carte_carburant %}
+                                                    {{ ravitaillement.get_carte_carburant.numero_carte }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ ravitaillement.dotation|default:"-" }}</td>
+                                            <td>{{ ravitaillement.volume|floatformat:2 }}</td>
+                                            <td>{{ ravitaillement.montant_ttc|intcomma }}</td>
+                                            <td>{{ ravitaillement.km_vehicule|default:"-" }}</td>
+                                            <td>
+                                                <a href="{% url 'demande_carte_carburant_detail' ravitaillement.id_demande %}" class="btn btn-sm btn-info">Détails</a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="11" class="text-center">Aucun ravitaillement trouvé</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot class="bg-light font-weight-bold">
+                                        <tr>
+                                            <td colspan="7" class="text-right">Total :</td>
+                                            <td>{{ total_volume|floatformat:2 }}</td>
+                                            <td>{{ total_montant|intcomma }}</td>
+                                            <td colspan="2"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script pour copier les valeurs des filtres lors de l'export -->
+<script>
+    function exportData(format) {
+        // Définir le format d'export
+        document.getElementById('export_format').value = format;
+        
+        // Copier les valeurs des filtres du formulaire principal
+        var filterForm = document.getElementById('filter-form');
+        var exportForm = document.getElementById('export-form');
+        
+        // Supprimer les champs existants dans le formulaire d'export (sauf le token CSRF et le format)
+        var children = Array.from(exportForm.children);
+        for (var i = 0; i < children.length; i++) {
+            var child = children[i];
+            if (child.name !== 'csrfmiddlewaretoken' && child.id !== 'export_format') {
+                exportForm.removeChild(child);
+            }
+        }
+        
+        // Copier tous les champs du formulaire de filtre
+        var filterInputs = filterForm.querySelectorAll('input, select');
+        for (var i = 0; i < filterInputs.length; i++) {
+            var input = filterInputs[i];
+            if (input.name !== 'csrfmiddlewaretoken') {
+                var clone = document.createElement('input');
+                clone.type = 'hidden';
+                clone.name = input.name;
+                clone.value = input.value;
+                exportForm.appendChild(clone);
+            }
+        }
+        
+        // Soumettre le formulaire d'export
+        exportForm.submit();
+    }
+</script>
+{% endblock %}

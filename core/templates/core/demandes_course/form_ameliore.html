@@ -1,0 +1,72 @@
+{% extends 'core/form_base.html' %}
+{% block title %}Nouvelle demande de course{% endblock %}
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Nouvelle demande de course</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" autocomplete="off">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.id_service.label_tag }}
+                            {{ form.id_service }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.lieu_depart.label_tag }}
+                            {{ form.lieu_depart }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.lieu_arrivee.label_tag }}
+                            {{ form.lieu_arrivee }}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.date_heure_prevue.label_tag }}
+                                {{ form.date_heure_prevue }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.date_heure_fin_retour.label_tag }}
+                                {{ form.date_heure_fin_retour }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.objet.label_tag }}
+                            {{ form.objet }}
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-success">Créer</button>
+                            <a href="{% url 'demandes_course_list' %}" class="btn btn-secondary">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const datePrevueInput = document.getElementById('id_date_heure_prevue');
+    const dateRetourInput = document.getElementById('id_date_heure_fin_retour');
+    if (datePrevueInput && dateRetourInput) {
+        datePrevueInput.addEventListener('change', function() {
+            const value = this.value;
+            if (value) {
+                // Format attendu: 'YYYY-MM-DDTHH:MM' (type=datetime-local)
+                const dateObj = new Date(value);
+                if (!isNaN(dateObj.getTime())) {
+                    dateObj.setHours(dateObj.getHours() + 1);
+                    // Reformat pour l'input type=datetime-local (YYYY-MM-DDTHH:MM)
+                    const pad = n => n.toString().padStart(2, '0');
+                    const formatted = `${dateObj.getFullYear()}-${pad(dateObj.getMonth()+1)}-${pad(dateObj.getDate())}T${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
+                    dateRetourInput.value = formatted;
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

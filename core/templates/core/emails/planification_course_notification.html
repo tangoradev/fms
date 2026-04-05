@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Nouvelle planification de course</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+        .container { background: #fff; margin: 30px auto; padding: 30px; max-width: 600px; border-radius: 8px; box-shadow: 0 2px 8px #e0e0e0; }
+        .header { background: #0d6efd; color: #fff; padding: 15px; border-radius: 8px 8px 0 0; text-align: center; }
+        .content { margin-top: 20px; }
+        .footer { margin-top: 30px; color: #888; font-size: 13px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Nouvelle planification de course</h2>
+        </div>
+        <div class="content">
+            <p>Bonjour {{ chauffeur.nom_complet }},</p>
+            <p>Vous avez été affecté(e) à une nouvelle planification de course :</p>
+            <ul>
+                <li><strong>Date et heure :</strong> {{ planification.date_heure|date:'d/m/Y H:i' }}</li>
+                <li><strong>Véhicule :</strong> {{ planification.vehicule }}</li>
+                <li><strong>Lieu d'arrivée :</strong> {{ planification.lieu_arrivee }}</li>
+                <li><strong>Statut :</strong> {{ planification.get_statut_display|default:planification.statut }}</li>
+            </ul>
+            <p>Merci de vous connecter à la plateforme FMS pour plus de détails.</p>
+        </div>
+        <div class="footer">
+            <p>Ce message a été envoyé automatiquement par le système FMS. Merci de ne pas y répondre.</p>
+            <p>&copy; PNUD Côte d'Ivoire - Système de Gestion de Flotte</p>
+        </div>
+    </div>
+</body>
+</html>

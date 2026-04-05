@@ -1,0 +1,185 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Détail du Véhicule - FMS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="card-title mb-0">{{ object.marque }} {{ object.modele }} - {{ object.immatriculation }}</h1>
+                        <div>
+                            <a href="{% url 'vehicules_list' %}" class="btn btn-secondary me-2">
+                                <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+                            </a>
+                            <a href="{% url 'vehicule_update' object.pk %}" class="btn btn-warning text-white me-2">
+                                <i class="fas fa-edit me-2"></i>Modifier
+                            </a>
+                            <a href="{% url 'vehicule_delete' object.pk %}" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Supprimer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informations générales</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th class="bg-light" style="width: 40%">Service</th>
+                            <td>{{ object.service }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Marque</th>
+                            <td>{{ object.marque }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Modèle</th>
+                            <td>{{ object.modele }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">N° Châssis</th>
+                            <td>{{ object.chassis }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Immatriculation</th>
+                            <td>{{ object.immatriculation }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Type de carburant</th>
+                            <td>{{ object.get_type_carburant_display }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Date de mise en service</th>
+                            <td>{{ object.date_mise_en_service|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Kilométrage</th>
+                            <td>{{ object.kilometrage }} km</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Statut</th>
+                            <td>
+                                {% if object.statut == 'Disponible' %}
+                                <span class="badge bg-success">{{ object.get_statut_display }}</span>
+                                {% elif object.statut == 'En service' %}
+                                <span class="badge bg-primary">{{ object.get_statut_display }}</span>
+                                {% elif object.statut == 'En maintenance' %}
+                                <span class="badge bg-warning text-dark">{{ object.get_statut_display }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ object.get_statut_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Date de création</th>
+                            <td>{{ object.date_creation|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Dernière modification</th>
+                            <td>{{ object.date_modification|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-image me-2"></i>Photo du véhicule</h6>
+                </div>
+                <div class="card-body text-center">
+                    {% if object.photo %}
+                    <img src="{{ object.photo.url }}" alt="Photo du véhicule" class="img-fluid rounded" style="max-height: 300px;">
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Aucune photo disponible pour ce véhicule.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-file-alt me-2"></i>Document</h6>
+                </div>
+                <div class="card-body">
+                    {% if object.document %}
+                    <a href="{{ object.document.url }}" target="_blank" class="btn btn-outline-primary">
+                        <i class="fas fa-download me-2"></i>Télécharger le document
+                    </a>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Aucun document disponible pour ce véhicule.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mt-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-credit-card me-2"></i>Carte carburant associée</h6>
+                </div>
+                <div class="card-body">
+                    {% if object.carte_carburant_set.exists %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Numéro de carte</th>
+                                    <th>Service</th>
+                                    <th>Solde</th>
+                                    <th>Statut</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for carte in object.carte_carburant_set.all %}
+                                <tr>
+                                    <td>{{ carte.numero_carte }}</td>
+                                    <td>{{ carte.service }}</td>
+                                    <td>{{ carte.solde }}</td>
+                                    <td>
+                                        {% if carte.statut == 'Disponible' %}
+                                        <span class="badge bg-success">{{ carte.get_statut_display }}</span>
+                                        {% elif carte.statut == 'En service' %}
+                                        <span class="badge bg-primary">{{ carte.get_statut_display }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ carte.get_statut_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ carte.get_absolute_url }}" class="btn btn-sm btn-info text-white" title="Voir">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Aucune carte carburant associée à ce véhicule.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'core/list_base.html' %}
+
+{% block title %}Liste des Cartes Carburant | FMS{% endblock %}
+
+{% block table_header %}
+<th>Numéro de carte</th>
+<th>Service</th>
+<th>Véhicule</th>
+<th>Solde</th>
+<th>Statut</th>
+{% endblock %}
+
+{% block table_row %}
+<td>{{ object.numero_carte }}</td>
+<td>{{ object.service }}</td>
+<td>{% if object.vehicule %}{{ object.vehicule }}{% else %}<span class="text-muted">Non assigné</span>{% endif %}</td>
+<td>
+    {{ object.get_solde_actif_formate }}
+</td>
+<td>
+    {% if object.statut == 'Disponible' %}
+    <span class="badge bg-success">{{ object.get_statut_display }}</span>
+    {% elif object.statut == 'En service' %}
+    <span class="badge bg-primary">{{ object.get_statut_display }}</span>
+    {% else %}
+    <span class="badge bg-secondary">{{ object.get_statut_display }}</span>
+    {% endif %}
+</td>
+{% endblock %}

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Fiche de ravitaillement #{{ demande.id_demande }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            font-size: 11px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #003366;
+            font-size: 16px;
+        }
+        .header h2 {
+            margin: 5px 0;
+            color: #666;
+            font-size: 13px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .info-section {
+            margin-bottom: 15px;
+        }
+        .info-section h3 {
+            background-color: #003366;
+            color: white;
+            padding: 4px;
+            margin: 0 0 8px 0;
+            font-size: 13px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            table-layout: fixed; /* Ajout pour fixer la largeur des colonnes */
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 6px;
+            text-align: left;
+            overflow: hidden; /* Empêche le débordement du texte */
+            word-wrap: break-word; /* Permet au texte de passer à la ligne */
+        }
+        th {
+            background-color: #f2f2f2;
+            width: 20%; /* Réduction de la largeur des en-têtes */
+        }
+        td {
+            width: 30%; /* Augmentation de la largeur des cellules de données */
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+        }
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+        .signature-box {
+            width: 45%;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            text-align: center;
+        }
+        .signature-box p {
+            margin: 5px 0;
+        }
+        /* Ajout d'une classe spécifique pour les tableaux de détails */
+        .details-table th {
+            width: 15%;
+        }
+        .details-table td {
+            width: 35%;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <h1>PNUD - PROGRAMME DES NATIONS UNIES POUR LE DÉVELOPPEMENT</h1>
+            <h2>BUREAU DE CÔTE D'IVOIRE</h2>
+        </div>
+        <h1>FICHE DE RAVITAILLEMENT EN CARBURANT</h1>
+        <h2>Demande #{{ demande.id_demande }}</h2>
+    </div>
+    
+    <div class="info-section">
+        <h3>INFORMATIONS GÉNÉRALES</h3>
+        <table class="details-table">
+            <tr>
+                <th>Date de la demande:</th>
+                <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
+                <th>Date du ravitaillement:</th>
+                <td>
+                    {% if demande.date_ravitaillement %}
+                        {{ demande.date_ravitaillement|date:"d/m/Y" }}
+                    {% else %}
+                        Non défini
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+        
+        <table class="details-table">
+            <tr>
+                <th>Service:</th>
+                <td>{{ demande.service.nom_service }}</td>
+                <th>Dotation:</th>
+                <td>
+                    {% if demande.rechargement_ht %}
+                        <span style="background-color: #007bff; color: white; padding: 2px 5px; border-radius: 3px;">HT</span>
+                        {{ demande.rechargement_ht.achat_stock_carburant_ht.libelle }}
+                    {% elif demande.rechargement_ttc %}
+                        <span style="background-color: #28a745; color: white; padding: 2px 5px; border-radius: 3px;">TTC</span>
+                        {{ demande.rechargement_ttc.achat_carburant_ttc.libelle }}
+                    {% else %}
+                        Non défini
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="info-section">
+        <h3>VÉHICULE</h3>
+        <table>
+            <tr>
+                <th>Immatriculation:</th>
+                <td>{{ demande.vehicule.immatriculation }}</td>
+                <th>Marque/Modèle:</th>
+                <td>{{ demande.vehicule.marque }} {{ demande.vehicule.modele }}</td>
+            </tr>
+            <tr>
+                <th>Type de carburant:</th>
+                <td>{{ demande.vehicule.get_type_carburant_display }}</td>
+                <th>Kilométrage:</th>
+                <td>
+                    {% if demande.km_vehicule %}
+                        {{ demande.km_vehicule }} km
+                    {% else %}
+                        Non défini
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="info-section">
+        <h3>DÉTAILS DU RAVITAILLEMENT</h3>
+        <table class="details-table">
+            <tr>
+                <th>Numéro de carte:</th>
+                <td>
+                    {% if demande.rechargement_ht %}
+                        {{ demande.rechargement_ht.carte_carburant.numero_carte }}
+                    {% elif demande.rechargement_ttc %}
+                        {{ demande.rechargement_ttc.carte_carburant.numero_carte }}
+                    {% elif carte_carburant and carte_carburant.numero_carte %}
+                        {{ carte_carburant.numero_carte }}
+                    {% else %}
+                        Non défini
+                    {% endif %}
+                </td>
+                <th>Station service:</th>
+                <td>
+                    {% if demande.station_service %}
+                        {{ demande.station_service }}
+                    {% else %}
+                        Non défini
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Séparation en deux tableaux pour éviter le chevauchement -->
+        <table class="details-table">
+            <tr>
+                <th>Volume de carburant:</th>
+                <td>
+                    {% if demande.volume %}
+                        {{ demande.volume|floatformat:2 }} litres
+                    {% else %}
+                        Non défini
+                    {% endif %}
+                </td>
+                <th>Montant TTC:</th>
+                <td>
+                    {% if demande.montant_ttc %}
+                        {{ demande.montant_ttc|floatformat:0 }} FCFA
+                    {% else %}
+                        Non défini
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+        
+        <table class="details-table">
+            <tr>
+                <th>Ancien solde:</th>
+                <td>
+                    {% if demande.ancien_solde_carte %}
+                        {{ demande.ancien_solde_carte|floatformat:0 }} FCFA
+                    {% else %}
+                        Non défini
+                    {% endif %}
+                </td>
+                <th>Nouveau solde:</th>
+                <td>
+                    {% if demande.nouveau_solde_carte %}
+                        {{ demande.nouveau_solde_carte|floatformat:0 }} FCFA
+                    {% else %}
+                        Non défini
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    {% if demande.commentaire_cloture %}
+    <div class="info-section">
+        <h3>COMMENTAIRES</h3>
+        <p>{{ demande.commentaire_cloture }}</p>
+    </div>
+    {% endif %}
+    
+    <div class="signatures">
+        <div class="signature-box">
+            <p>Chauffeur:</p>
+            <p>{{ demande.utilisateur_demandeur.get_full_name }}</p>
+        </div>
+        <div class="signature-box">
+            <p>Gestionnaire Carburant:</p>
+            <p>{{ demande.utilisateur_traitant.get_full_name }}</p>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Fiche générée le {{ demande.date_cloture|date:"d/m/Y H:i" }} via le système FMS</p>
+    </div>
+</body>
+</html>

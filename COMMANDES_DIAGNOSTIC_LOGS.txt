@@ -1,0 +1,49 @@
+# ============================================================
+# COMMANDES DE DIAGNOSTIC - LOGS SERVEUR
+# ============================================================
+
+# 1. Chercher les fichiers de logs
+find . -name "*.log" -type f 2>/dev/null
+
+# 2. Vérifier les logs dans le répertoire logs/
+ls -la logs/ 2>/dev/null
+
+# 3. Vérifier les logs Apache/Nginx (si accessible)
+ls -la /var/log/apache2/ 2>/dev/null
+ls -la /var/log/nginx/ 2>/dev/null
+
+# 4. Vérifier les logs Passenger
+ls -la log/ 2>/dev/null
+cat log/passenger.log 2>/dev/null | tail -50
+
+# 5. Créer le fichier debug.log s'il n'existe pas
+touch debug.log
+chmod 666 debug.log
+
+# 6. Tester l'application avec Django shell
+python manage.py shell
+
+# Dans le shell Python, testez :
+from core.models import Achat_Stock_Carburant_HT
+print("Nombre d'achats:", Achat_Stock_Carburant_HT.objects.count())
+print("Achats:", Achat_Stock_Carburant_HT.objects.all())
+exit()
+
+# 7. Vérifier les erreurs Python
+python manage.py check
+
+# 8. Tester la vue directement
+python manage.py shell
+from django.test import Client
+c = Client()
+response = c.get('/achats-carburant-ht/')
+print("Status:", response.status_code)
+if response.status_code == 500:
+    print("Erreur 500 détectée")
+exit()
+
+# 9. Redémarrer l'application
+mkdir -p tmp && touch tmp/restart.txt
+
+# 10. Vérifier le statut du redémarrage
+ls -lh tmp/restart.txt

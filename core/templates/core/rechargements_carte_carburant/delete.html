@@ -1,0 +1,73 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+
+{% block title %}Supprimer le Rechargement | FMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Supprimer le Rechargement</h1>
+        <a href="{% url 'rechargement_carte_carburant_detail' object.id_rechargement %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50 me-2"></i>Retour aux détails
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Confirmation de suppression</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Attention :</strong> Vous êtes sur le point de supprimer le rechargement de carte carburant suivant :
+                    </div>
+                    
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th class="bg-light" style="width: 40%">Date de rechargement</th>
+                                <td>{{ object.date_rechargement|date:"d/m/Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Carte carburant</th>
+                                <td>{{ object.carte_carburant.numero_carte }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Achat stock</th>
+                                <td>{{ object.achat_stock_carburant_ht.voucher }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Volume</th>
+                                <td>{{ object.volume }} L</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Montant TTC</th>
+                                <td>{{ object.montant_ttc }} XOF</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="alert alert-danger mb-4">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>Important :</strong> Cette action est irréversible. La suppression de ce rechargement entraînera également la mise à jour du solde de la carte carburant concernée.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'rechargement_carte_carburant_detail' object.id_rechargement %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Annuler
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Confirmer la suppression
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

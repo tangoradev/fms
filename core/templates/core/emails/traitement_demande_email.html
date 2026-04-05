@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+{% load humanize %}
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Demande de carte carburant {{ demande.statut_demande|lower }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header-acceptee {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        .header-rejetee {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .btn-acceptee {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .btn-rejetee {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if demande.statut_demande == 'Acceptée' %}
+        <div class="header-acceptee">
+        {% else %}
+        <div class="header-rejetee">
+        {% endif %}
+            <h1>Votre demande de carte carburant a été {{ demande.statut_demande|lower }}</h1>
+        </div>
+        
+        <div class="content">
+            <p>Bonjour {{ demande.utilisateur_demandeur.prenom }} {{ demande.utilisateur_demandeur.nom }},</p>
+            
+            <p>Votre demande de carte carburant a été traitée et a été <strong>{{ demande.statut_demande|lower }}</strong>.</p>
+            
+            <h3>Détails de la demande :</h3>
+            <table>
+                <tr>
+                    <th>Numéro de demande</th>
+                    <td>#{{ demande.id_demande }}</td>
+                </tr>
+                <tr>
+                    <th>Date de la demande</th>
+                    <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>Date de traitement</th>
+                    <td>{{ demande.date_traitement|date:"d/m/Y H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>Service</th>
+                    <td>{{ demande.service.nom_service }}</td>
+                </tr>
+                <tr>
+                    <th>Véhicule</th>
+                    <td>{{ demande.vehicule.immatriculation }} - {{ demande.vehicule.marque }} {{ demande.vehicule.modele }}</td>
+                </tr>
+                <tr>
+                    <th>Statut</th>
+                    <td>{{ demande.statut_demande }}</td>
+                </tr>
+                {% if demande.statut_demande == 'Acceptée' %}
+                <tr>
+                    <th>Dotation</th>
+                    <td>
+                        {% if demande.rechargement_ht %}
+                            <span style="background-color: #007bff; color: white; padding: 2px 6px; border-radius: 3px;">HT</span>
+                            {{ demande.rechargement_ht.achat_stock_carburant_ht.libelle }}
+                        {% elif demande.rechargement_ttc %}
+                            <span style="background-color: #28a745; color: white; padding: 2px 6px; border-radius: 3px;">TTC</span>
+                            {{ demande.rechargement_ttc.achat_carburant_ttc.libelle }}
+                        {% else %}
+                            Non spécifié
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Carte carburant attribuée</th>
+                    <td>
+                        {% if demande.rechargement_ht %}
+                            {{ demande.rechargement_ht.carte_carburant.numero_carte }}
+                        {% elif demande.rechargement_ttc %}
+                            {{ demande.rechargement_ttc.carte_carburant.numero_carte }}
+                        {% else %}
+                            Non spécifié
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Solde disponible</th>
+                    <td>
+                        {% if solde_formate %}
+                            {{ solde_formate }}
+                        {% else %}
+                            {% if demande.rechargement_ht %}
+                                {{ demande.rechargement_ht.solde_restant|floatformat:0|intcomma }} FCFA
+                            {% elif demande.rechargement_ttc %}
+                                {{ demande.rechargement_ttc.solde_restant|floatformat:0|intcomma }} FCFA
+                            {% else %}
+                                0 FCFA
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% if demande.commentaire %}
+                <tr>
+                    <th>Commentaire</th>
+                    <td>{{ demande.commentaire }}</td>
+                </tr>
+                {% endif %}
+            </table>
+            
+            {% if demande.statut_demande == 'Acceptée' %}
+            <p>Vous pouvez maintenant utiliser la carte carburant pour ravitailler votre véhicule. N'oubliez pas de clôturer votre demande après le ravitaillement en fournissant les détails de l'opération.</p>
+            
+            <a href="http://{{ request.get_host }}{% url 'demande_carte_carburant_cloture' demande.id_demande %}" class="btn-acceptee">Clôturer la demande après ravitaillement</a>
+            {% else %}
+            <p>Si vous avez des questions concernant cette décision, veuillez contacter votre gestionnaire carburant.</p>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            <p>Ce message a été envoyé automatiquement par le système FMS. Merci de ne pas y répondre.</p>
+            <p>PNUD Côte d'Ivoire - Système de Gestion de Flotte</p>
+        </div>
+    </div>
+</body>
+</html>

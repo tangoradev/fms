@@ -1,0 +1,180 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Accueil - FMS{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<!-- Dashboard Section -->
+<div id="dashboard" class="container mb-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4 mb-4"><i class="fas fa-tachometer-alt me-2"></i>Tableau de bord</h2>
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary bg-gradient text-white h-100 border-0 shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="text-uppercase fw-bold mb-0">Véhicules</h6>
+                                        <div class="rounded-circle bg-white p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                            <i class="fas fa-car fa-lg text-primary"></i>
+                                        </div>
+                                    </div>
+                                    <h2 class="display-6 mb-0">{{ vehicules_count|default:"0" }}</h2>
+                                    <div class="mt-3">
+                                        <a href="{% url 'vehicules_list' %}" class="text-white d-flex align-items-center">
+                                            <span>Voir détails</span>
+                                            <i class="fas fa-arrow-right ms-2"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="card bg-success bg-gradient text-white h-100 border-0 shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="text-uppercase fw-bold mb-0">Cartes Carburant</h6>
+                                        <div class="rounded-circle bg-white p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                            <i class="fas fa-credit-card fa-lg text-success"></i>
+                                        </div>
+                                    </div>
+                                    <h2 class="display-6 mb-0">{{ cartes_count|default:"0" }}</h2>
+                                    <div class="mt-3">
+                                        <a href="{% url 'cartes_carburant_list' %}" class="text-white d-flex align-items-center">
+                                            <span>Voir détails</span>
+                                            <i class="fas fa-arrow-right ms-2"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="card bg-info bg-gradient text-white h-100 border-0 shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="text-uppercase fw-bold mb-0">Utilisateurs</h6>
+                                        <div class="rounded-circle bg-white p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                            <i class="fas fa-users fa-lg text-info"></i>
+                                        </div>
+                                    </div>
+                                    <h2 class="display-6 mb-0">{{ utilisateurs_count|default:"0" }}</h2>
+                                    <div class="mt-3">
+                                        <a href="{% url 'utilisateurs_view' %}" class="text-white d-flex align-items-center">
+                                            <span>Voir détails</span>
+                                            <i class="fas fa-arrow-right ms-2"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="card bg-warning bg-gradient text-white h-100 border-0 shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="text-uppercase fw-bold mb-0">Services</h6>
+                                        <div class="rounded-circle bg-white p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                            <i class="fas fa-building fa-lg text-warning"></i>
+                                        </div>
+                                    </div>
+                                    <h2 class="display-6 mb-0">{{ services_count|default:"0" }}</h2>
+                                    <div class="mt-3">
+                                        <a href="{% url 'services_view' %}" class="text-white d-flex align-items-center">
+                                            <span>Voir détails</span>
+                                            <i class="fas fa-arrow-right ms-2"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h3 class="h5 mb-0"><i class="fas fa-history me-2"></i>Dernières activités</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Utilisateur</th>
+                                    <th>Action</th>
+                                    <th>Détails</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if activities %}
+                                    {% for activity in activities %}
+                                    <tr>
+                                        <td>{{ activity.date }}</td>
+                                        <td>{{ activity.user }}</td>
+                                        <td>{{ activity.action }}</td>
+                                        <td>{{ activity.details }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <i class="fas fa-info-circle fa-2x text-muted mb-3"></i>
+                                                <p class="text-muted mb-0">Aucune activité récente à afficher</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- Not Authenticated Section -->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-5">
+                    <img src="{% static 'core/img/logo.svg' %}" alt="Logo" class="mb-4" style="height: 80px;">
+                    <h2 class="h3 mb-4">Veuillez vous connecter pour accéder au système</h2>
+                    <p class="lead mb-4">FMS est un système complet de gestion de flotte automobile qui vous permet de gérer efficacement vos véhicules, carburants, et plus encore.</p>
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-5">
+                        <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hover-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">{{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Informations de la demande</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>ID</th>
+                                    <td>{{ demande.id_demande }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Date de demande</th>
+                                    <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Date de traitement</th>
+                                    <td>{{ demande.date_traitement|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Service</th>
+                                    <td>{{ demande.service.nom_service }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Véhicule</th>
+                                    <td>{{ demande.vehicule.immatriculation }} - {{ demande.vehicule.marque }} {{ demande.vehicule.modele }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Carte carburant</th>
+                                    <td>
+                                        {% if demande.rechargement_ht %}
+                                            Carte {{ demande.rechargement_ht.carte_carburant.numero_carte }} - {{ demande.service.nom_service }}
+                                        {% elif demande.rechargement_ttc %}
+                                            Carte {{ demande.rechargement_ttc.carte_carburant.numero_carte }} - {{ demande.service.nom_service }}
+                                        {% elif demande.get_carte_carburant %}
+                                            Carte {{ demande.get_carte_carburant.numero_carte }} - {{ demande.service.nom_service }}
+                                        {% else %}
+                                            Non définie
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Solde actuel</th>
+                                    <td>
+                                        {% if solde_formate %}
+                                            {{ solde_formate }}
+                                        {% else %}
+                                            0 FCFA
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Statut</th>
+                                    <td>
+                                        {% if demande.statut_demande == 'En attente' %}
+                                            <span class="badge badge-warning">En attente</span>
+                                        {% elif demande.statut_demande == 'Acceptée' %}
+                                            <span class="badge badge-success">Acceptée</span>
+                                        {% elif demande.statut_demande == 'Rejetée' %}
+                                            <span class="badge badge-danger">Rejetée</span>
+                                        {% elif demande.statut_demande == 'Close' %}
+                                            <span class="badge badge-info">Clôturée</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">{{ demande.statut_demande }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data" id="cloture-form">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <h4><i class="icon fa fa-ban"></i> Erreurs dans le formulaire</h4>
+                            {{ form.errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_date_ravitaillement">Date du ravitaillement</label>
+                                    {{ form.date_ravitaillement }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_km_vehicule">Kilométrage</label>
+                                    {{ form.km_vehicule }}
+                                    <small class="form-text text-muted">Kilométrage actuel du véhicule: {{ demande.vehicule.kilometrage|default:0 }} km</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="id_volume">Volume de carburant (litres)</label>
+                                    {{ form.volume }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="id_prix_unitaire_ttc">Prix unitaire TTC (FCFA/litre)</label>
+                                    {{ form.prix_unitaire_ttc }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="id_montant_ttc">Montant total TTC (FCFA)</label>
+                                    {{ form.montant_ttc }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_station_service">Station service</label>
+                                    {{ form.station_service }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_document">Facture de ravitaillement</label>
+                                    {{ form.document }}
+                                    <small class="form-text text-muted">Formats acceptés : PDF, JPG, PNG</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Après clôture, le solde de la carte sera mis à jour et une notification sera envoyée aux gestionnaires carburant.
+                        </div>
+                        
+                        <div class="form-group text-center mt-4">
+                            <button type="submit" class="btn btn-primary">Clôturer la demande</button>
+                            <a href="{% url 'demandes_carte_carburant_list' %}" class="btn btn-secondary ml-2">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Passer les données Django au JavaScript via des attributs data -->
+<div id="js-data" 
+     data-km-vehicule="{{ demande.vehicule.kilometrage|default:0 }}">
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Récupérer les données Django depuis l'élément data
+        const jsData = document.getElementById('js-data');
+        const vehiculeKm = parseInt(jsData.dataset.kmVehicule) || 0;
+        
+        const volumeInput = document.getElementById('id_volume');
+        const prixUnitaireInput = document.getElementById('id_prix_unitaire_ttc');
+        const montantInput = document.getElementById('id_montant_ttc');
+        const kmInput = document.getElementById('id_km_vehicule');
+        const dateInput = document.getElementById('id_date_ravitaillement');
+        
+        // Calculer le montant en fonction du volume et du prix unitaire
+        function calculerMontant() {
+            if (volumeInput.value && prixUnitaireInput.value) {
+                const volume = parseFloat(volumeInput.value);
+                const prixUnitaire = parseFloat(prixUnitaireInput.value);
+                const montantCalcule = Math.round(volume * prixUnitaire);
+                
+                // Afficher le montant calculé comme suggestion, mais ne pas l'imposer
+                if (!montantInput.value) {
+                    // Si le champ est vide, remplir avec le montant calculé
+                    montantInput.value = montantCalcule;
+                } else if (montantInput.dataset.autoCalcul === 'true') {
+                    // Si le mode auto-calcul est actif, mettre à jour le montant
+                    montantInput.value = montantCalcule;
+                }
+                
+                // Retirer toute indication visuelle de différence
+                montantInput.classList.remove('border-warning');
+            }
+        }
+        
+        // Ajouter un bouton pour activer/désactiver le calcul automatique
+        const montantGroup = montantInput.closest('.form-group');
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'btn btn-sm btn-outline-secondary mt-2';
+        toggleBtn.innerHTML = '<i class="fas fa-calculator"></i> Activer le calcul automatique';
+        montantInput.dataset.autoCalcul = 'false';
+        
+        toggleBtn.addEventListener('click', function() {
+            if (montantInput.dataset.autoCalcul === 'true') {
+                montantInput.dataset.autoCalcul = 'false';
+                montantInput.removeAttribute('readonly');
+                toggleBtn.innerHTML = '<i class="fas fa-calculator"></i> Activer le calcul automatique';
+            } else {
+                montantInput.dataset.autoCalcul = 'true';
+                montantInput.setAttribute('readonly', 'readonly');
+                toggleBtn.innerHTML = '<i class="fas fa-edit"></i> Désactiver le calcul automatique';
+                calculerMontant(); // Recalculer immédiatement
+            }
+        });
+        
+        montantGroup.appendChild(toggleBtn);
+        
+        // Mettre à jour le montant quand le volume ou le prix unitaire change
+        volumeInput.addEventListener('input', calculerMontant);
+        prixUnitaireInput.addEventListener('input', calculerMontant);
+        
+        // Permettre à l'utilisateur de saisir manuellement le montant
+        montantInput.addEventListener('input', function() {
+            // Si l'utilisateur modifie manuellement le montant, désactiver le calcul automatique
+            if (montantInput.dataset.autoCalcul === 'true') {
+                montantInput.dataset.autoCalcul = 'false';
+                montantInput.removeAttribute('readonly');
+                toggleBtn.innerHTML = '<i class="fas fa-calculator"></i> Activer le calcul automatique';
+            }
+        });
+        
+        // Pré-remplir avec la date d'aujourd'hui si le champ est vide
+        if (!dateInput.value) {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${year}-${month}-${day}`;
+        }
+        
+        // Pré-remplir le kilométrage avec le kilométrage actuel du véhicule si le champ est vide
+        if (!kmInput.value && vehiculeKm > 0) {
+            kmInput.value = vehiculeKm;
+        }
+        
+        // Pré-remplir le prix unitaire avec une valeur par défaut si le champ est vide
+        if (!prixUnitaireInput.value) {
+            prixUnitaireInput.value = 615; // Prix moyen du carburant (FCFA par litre)
+            calculerMontant(); // Calculer le montant initial
+        }
+        
+        // Validation du formulaire
+        document.getElementById('cloture-form').addEventListener('submit', function(e) {
+            if (!volumeInput.value || !prixUnitaireInput.value || !montantInput.value) {
+                e.preventDefault();
+                alert('Veuillez remplir tous les champs obligatoires (volume, prix unitaire et montant).');
+            }
+        });
+    });
+</script>
+{% endblock %}

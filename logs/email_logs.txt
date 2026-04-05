@@ -1,0 +1,56 @@
+2025-03-15 10:04:37,814 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 2, Destinataires: aminata.bamba@undp.org, soungalo.tangora@yahoo.fr
+2025-03-15 10:04:39,800 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 2
+2025-03-15 10:17:52,675 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 3, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 10:17:55,837 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 3
+2025-03-15 10:22:00,647 - INFO - Envoi d'email: Sujet: Demande de carte carburant acceptée - 3, Destinataires: hynnox@gmail.com
+2025-03-15 10:22:03,368 - INFO - Email envoyé avec succès: Demande de carte carburant acceptée - 3
+2025-03-15 11:21:57,860 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 4, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 11:22:00,606 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 4
+2025-03-15 11:24:19,522 - INFO - Envoi d'email: Sujet: Demande de carte carburant acceptée - 4, Destinataires: hynnox@gmail.com
+2025-03-15 11:24:21,623 - INFO - Email envoyé avec succès: Demande de carte carburant acceptée - 4
+2025-03-15 11:38:59,716 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 5, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 11:39:01,563 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 5
+2025-03-15 11:43:27,084 - INFO - Envoi d'email: Sujet: Demande de carte carburant acceptée - 5, Destinataires: hynnox@gmail.com
+2025-03-15 11:43:29,399 - INFO - Email envoyé avec succès: Demande de carte carburant acceptée - 5
+2025-03-15 12:17:24,416 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 6, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 12:17:26,440 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 6
+2025-03-15 12:18:42,551 - INFO - Envoi d'email: Sujet: Demande de carte carburant acceptée - 6, Destinataires: hynnox@gmail.com
+2025-03-15 12:18:44,334 - INFO - Email envoyé avec succès: Demande de carte carburant acceptée - 6
+2025-03-15 12:24:42,791 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 7, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 12:24:45,621 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 7
+2025-03-15 12:25:37,063 - INFO - Envoi d'email: Sujet: Demande de carte carburant acceptée - 7, Destinataires: hynnox@gmail.com
+2025-03-15 12:25:39,218 - INFO - Email envoyé avec succès: Demande de carte carburant acceptée - 7
+2025-03-15 12:36:58,623 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 8, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 12:37:01,008 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 8
+2025-03-15 17:56:56,404 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 9, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 17:56:58,371 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 9
+2025-03-15 18:05:53,217 - INFO - Envoi d'email: Sujet: Demande de carte carburant acceptée - 9, Destinataires: hynnox@gmail.com
+2025-03-15 18:05:55,134 - INFO - Email envoyé avec succès: Demande de carte carburant acceptée - 9
+2025-03-15 18:19:07,520 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 10, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 18:19:10,228 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 10
+2025-03-15 18:20:13,872 - INFO - Envoi d'email: Sujet: Demande de carte carburant acceptée - 10, Destinataires: hynnox@gmail.com
+2025-03-15 18:20:16,508 - INFO - Email envoyé avec succès: Demande de carte carburant acceptée - 10
+2025-03-15 18:32:25,944 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 11, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 18:32:27,873 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 11
+2025-03-15 18:33:42,372 - INFO - Envoi d'email: Sujet: Demande de carte carburant acceptée - 11, Destinataires: hynnox@gmail.com
+2025-03-15 18:33:44,433 - INFO - Email envoyé avec succès: Demande de carte carburant acceptée - 11
+2025-03-15 18:56:54,141 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 12, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 18:56:56,209 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 12
+2025-03-15 18:57:32,453 - INFO - Envoi d'email: Sujet: Demande de carte carburant acceptée - 12, Destinataires: hynnox@gmail.com
+2025-03-15 18:57:34,292 - INFO - Email envoyé avec succès: Demande de carte carburant acceptée - 12
+2025-03-15 19:02:51,083 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 13, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 19:02:53,276 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 13
+2025-03-15 19:03:26,013 - INFO - Envoi d'email: Sujet: Demande de carte carburant acceptée - 13, Destinataires: hynnox@gmail.com
+2025-03-15 19:03:27,793 - INFO - Email envoyé avec succès: Demande de carte carburant acceptée - 13
+2025-03-15 19:26:36,717 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 14, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 19:26:38,783 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 14
+2025-03-15 19:27:15,266 - INFO - Envoi d'email: Sujet: Demande de carte carburant acceptée - 14, Destinataires: hynnox@gmail.com
+2025-03-15 19:27:17,818 - INFO - Email envoyé avec succès: Demande de carte carburant acceptée - 14
+2025-03-15 19:47:15,250 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 15, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-15 19:47:16,980 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 15
+2025-03-15 19:47:56,972 - INFO - Envoi d'email: Sujet: Demande de carte carburant acceptée - 15, Destinataires: hynnox@gmail.com
+2025-03-15 19:48:04,656 - INFO - Email envoyé avec succès: Demande de carte carburant acceptée - 15
+2025-03-16 08:32:31,644 - INFO - Envoi d'email: Sujet: Nouvelle demande de carte de carburant - 16, Destinataires: aminata.bamba@undp.org, digital@undpciv.org
+2025-03-16 08:32:36,049 - INFO - Email envoyé avec succès: Nouvelle demande de carte de carburant - 16
+2025-03-16 08:36:42,543 - INFO - Envoi d'email: Sujet: Demande de carte carburant rejetée - 16, Destinataires: hynnox@gmail.com
+2025-03-16 08:36:44,829 - INFO - Email envoyé avec succès: Demande de carte carburant rejetée - 16

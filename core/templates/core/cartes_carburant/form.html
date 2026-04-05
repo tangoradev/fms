@@ -1,0 +1,69 @@
+{% extends 'core/form_base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{% if form.instance.id_carte_carburant %}Modifier{% else %}Ajouter{% endif %} une Carte Carburant | FMS{% endblock %}
+
+{% block form_fields %}
+<div class="row">
+    <div class="col-md-6 mb-3">
+        {{ form.numero_carte.label_tag }}
+        {{ form.numero_carte|add_class:"form-control" }}
+        {% if form.numero_carte.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.numero_carte.errors }}
+            </div>
+        {% endif %}
+        {% if form.numero_carte.help_text %}
+            <small class="form-text text-muted">{{ form.numero_carte.help_text }}</small>
+        {% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+        {{ form.service.label_tag }}
+        {{ form.service|add_class:"form-control" }}
+        {% if form.service.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.service.errors }}
+            </div>
+        {% endif %}
+        {% if form.service.help_text %}
+            <small class="form-text text-muted">{{ form.service.help_text }}</small>
+        {% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+        {{ form.vehicule.label_tag }}
+        {{ form.vehicule|add_class:"form-control" }}
+        {% if form.vehicule.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.vehicule.errors }}
+            </div>
+        {% endif %}
+        {% if form.vehicule.help_text %}
+            <small class="form-text text-muted">{{ form.vehicule.help_text }}</small>
+        {% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+        {{ form.solde.label_tag }}
+        {{ form.solde|add_class:"form-control" }}
+        {% if form.solde.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.solde.errors }}
+            </div>
+        {% endif %}
+        {% if form.solde.help_text %}
+            <small class="form-text text-muted">{{ form.solde.help_text }}</small>
+        {% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+        {{ form.statut.label_tag }}
+        {{ form.statut|add_class:"form-control" }}
+        {% if form.statut.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.statut.errors }}
+            </div>
+        {% endif %}
+        {% if form.statut.help_text %}
+            <small class="form-text text-muted">{{ form.statut.help_text }}</small>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Nouvelle demande de course à traiter</title>
+</head>
+<body>
+    <p>Bonjour {{ driver_principal.nom_complet }},</p>
+    <p>Une nouvelle demande de course a été soumise par {{ demande.id_utilisateur.nom_complet }}.</p>
+    <p>Voici les détails de la demande :</p>
+    <ul>
+        <li><b>Lieu de départ :</b> {{ demande.lieu_depart }}</li>
+        <li><b>Destination :</b> {{ demande.lieu_arrivee }}</li>
+        <li><b>Date et heure souhaitée :</b> {{ demande.date_heure_prevue }}</li>
+        <li><b>Objet de la course :</b> {{ demande.objet }}</li>
+    </ul>
+    <p>Veuillez examiner cette demande dans les plus brefs délais.</p>
+    <p>
+        Pour consulter la demande, cliquez ici :
+        <a href="http://127.0.0.1:8000/demandes-courses/">Lien vers la plateforme</a>
+    </p>
+    <p>Merci pour votre collaboration !</p>
+    <p>Cordialement</p>
+</body>
+</html>

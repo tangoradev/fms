@@ -1,0 +1,26 @@
+# ============================================================
+# PATCH À AJOUTER DANS settings.py DU SERVEUR DISTANT
+# ============================================================
+# Ajoutez ces lignes APRÈS la section "Sécurité supplémentaire en prod"
+# (après CSRF_COOKIE_SECURE = True)
+
+# Configuration CSRF pour la production (OBLIGATOIRE pour Django 4.x)
+CSRF_TRUSTED_ORIGINS = [
+    'http://fms.undpciv.org',
+    'https://fms.undpciv.org',
+    'http://www.fms.undpciv.org',
+    'https://www.fms.undpciv.org',
+]
+
+# Configuration supplémentaire des cookies CSRF
+CSRF_COOKIE_HTTPONLY = False  # Permet à JavaScript d'accéder au token si nécessaire
+CSRF_COOKIE_SAMESITE = 'Lax'  # Protection contre les attaques CSRF cross-site
+
+# Configuration de l'authentification
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
+
+# ============================================================
+# FIN DU PATCH
+# ============================================================

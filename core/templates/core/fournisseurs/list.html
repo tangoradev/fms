@@ -1,0 +1,118 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Liste des Fournisseurs - FMS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="card-title mb-0">Gestion des Fournisseurs</h1>
+                        <a href="{% url 'fournisseur_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i>Ajouter un fournisseur
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="mb-0"><i class="fas fa-building me-2"></i>Liste des Fournisseurs</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Rechercher..." id="searchInput">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if fournisseurs_list %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    {% block table_header %}
+                                    <th>Nom</th>
+                                    <th>Type</th>
+                                    <th>Adresse</th>
+                                    <th>Email</th>
+                                    <th>Téléphone</th>
+                                    {% endblock %}
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for fournisseur in fournisseurs_list %}
+                                <tr>
+                                    {% block table_row %}
+                                    <td>{{ fournisseur.nom_fournisseur }}</td>
+                                    <td>{{ fournisseur.get_type_fournisseur_display }}</td>
+                                    <td>{{ fournisseur.adresse|truncatechars:30|default:"-" }}</td>
+                                    <td>{{ fournisseur.email|default:"-" }}</td>
+                                    <td>{{ fournisseur.telephone|default:"-" }}</td>
+                                    {% endblock %}
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'fournisseur_detail' fournisseur.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'fournisseur_update' fournisseur.pk %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'fournisseur_delete' fournisseur.pk %}" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Aucun fournisseur trouvé.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Script pour la recherche dans le tableau
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('tbody tr');
+            
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

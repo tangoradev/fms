@@ -1,0 +1,168 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{{ title }}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'releve_consommation_carburant' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="dotation_type">Type de dotation</label>
+                                    <select class="form-control" id="dotation_type" name="dotation_type" required>
+                                        <option value="">Sélectionner un type de dotation</option>
+                                        <option value="ht">Dotation HT</option>
+                                        <option value="ttc">Dotation TTC</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="dotation_id">Dotation</label>
+                                    <select class="form-control" id="dotation_id" name="dotation_id" required disabled>
+                                        <option value="">Sélectionner d'abord un type de dotation</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="service">Service</label>
+                                    <select class="form-control" id="service" name="service">
+                                        <option value="">Tous les services</option>
+                                        {% for service in services %}
+                                            <option value="{{ service.id_service }}">{{ service.nom_service }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="mois">Mois</label>
+                                    <select class="form-control" id="mois" name="mois" required>
+                                        <option value="">Sélectionner un mois</option>
+                                        <option value="1">Janvier</option>
+                                        <option value="2">Février</option>
+                                        <option value="3">Mars</option>
+                                        <option value="4">Avril</option>
+                                        <option value="5">Mai</option>
+                                        <option value="6">Juin</option>
+                                        <option value="7">Juillet</option>
+                                        <option value="8">Août</option>
+                                        <option value="9">Septembre</option>
+                                        <option value="10">Octobre</option>
+                                        <option value="11">Novembre</option>
+                                        <option value="12">Décembre</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="annee">Année</label>
+                                    <select class="form-control" id="annee" name="annee" required>
+                                        <option value="">Sélectionner une année</option>
+                                        {% now "Y" as current_year %}
+                                        {% with year_minus_2=current_year|add:"-2" %}
+                                        {% with year_minus_1=current_year|add:"-1" %}
+                                        {% with year_plus_1=current_year|add:"1" %}
+                                            <option value="{{ year_minus_2 }}">{{ year_minus_2 }}</option>
+                                            <option value="{{ year_minus_1 }}">{{ year_minus_1 }}</option>
+                                            <option value="{{ current_year }}" selected>{{ current_year }}</option>
+                                            <option value="{{ year_plus_1 }}">{{ year_plus_1 }}</option>
+                                        {% endwith %}
+                                        {% endwith %}
+                                        {% endwith %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-file-alt"></i> Générer le relevé
+                                </button>
+                                <a href="{% url 'suivi_dotations' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Retour
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stockage des données pour JavaScript -->
+<div id="dotations-data" style="display: none;" 
+     data-dotations-ht='{{ dotations_ht_json|safe }}'
+     data-dotations-ttc='{{ dotations_ttc_json|safe }}'>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Document ready");
+    // Récupérer les données JSON des dotations
+    var dotationsData = document.getElementById('dotations-data');
+    var dotationsHT = JSON.parse(dotationsData.getAttribute('data-dotations-ht'));
+    var dotationsTTC = JSON.parse(dotationsData.getAttribute('data-dotations-ttc'));
+    
+    console.log("Dotations HT:", dotationsHT);
+    console.log("Dotations TTC:", dotationsTTC);
+    
+    // Fonction pour charger les dotations en fonction du type sélectionné
+    document.getElementById('dotation_type').addEventListener('change', function() {
+        var dotationType = this.value;
+        var dotationSelect = document.getElementById('dotation_id');
+        
+        console.log("Type de dotation sélectionné:", dotationType);
+        
+        // Réinitialiser le select des dotations
+        dotationSelect.innerHTML = '<option value="">Sélectionner une dotation</option>';
+        
+        if (dotationType) {
+            dotationSelect.disabled = false;
+            
+            // Ajouter les options en fonction du type de dotation
+            var dotations = [];
+            if (dotationType === 'ht') {
+                dotations = dotationsHT;
+            } else if (dotationType === 'ttc') {
+                dotations = dotationsTTC;
+            }
+            
+            console.log("Dotations à ajouter:", dotations);
+            
+            // Ajouter chaque dotation au select
+            for (var i = 0; i < dotations.length; i++) {
+                var dotation = dotations[i];
+                var montantFormatted = new Intl.NumberFormat('fr-FR').format(dotation.montant_ttc);
+                var option = document.createElement('option');
+                option.value = dotation.id;
+                option.textContent = dotation.libelle + ' (' + montantFormatted + ' FCFA)';
+                dotationSelect.appendChild(option);
+            }
+        } else {
+            dotationSelect.disabled = true;
+        }
+    });
+
+    // Déclencher le changement si un type est déjà sélectionné
+    var dotationType = document.getElementById('dotation_type');
+    if (dotationType.value) {
+        var event = new Event('change');
+        dotationType.dispatchEvent(event);
+    }
+});
+</script>
+{% endblock %}

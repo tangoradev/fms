@@ -1,0 +1,109 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">{{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Informations de la demande</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>ID</th>
+                                    <td>{{ demande.id_demande }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Date de demande</th>
+                                    <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Demandeur</th>
+                                    <td>{{ demande.utilisateur_demandeur.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Service</th>
+                                    <td>{{ demande.service.nom_service }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Véhicule</th>
+                                    <td>{{ demande.vehicule.immatriculation }} - {{ demande.vehicule.marque }} {{ demande.vehicule.modele }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Motif</th>
+                                    <td>{{ demande.motif_demande }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Statut</th>
+                                    <td><span class="badge badge-warning">{{ demande.statut_demande }}</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <form method="post" id="traitement-form">
+                        {% csrf_token %}
+                        <input type="hidden" id="service_id" value="{{ demande.service.id_service }}">
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <h4><i class="icon fa fa-ban"></i> Erreurs dans le formulaire</h4>
+                            {{ form.errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="form-group">
+                            <label for="id_statut_demande">Statut de la demande</label>
+                            {{ form.statut_demande }}
+                        </div>
+                        
+                        <div class="form-group" id="dotation-group" style="display: none;">
+                            <label for="id_dotation">Dotation</label>
+                            {{ form.dotation }}
+                            <small class="form-text text-muted">Sélectionnez la dotation à utiliser pour cette demande.</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_commentaire">Commentaire</label>
+                            {{ form.commentaire }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Traiter la demande</button>
+                            <a href="{% url 'demandes_carte_carburant_list' %}" class="btn btn-secondary">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const statutSelect = document.getElementById('id_statut_demande');
+        const dotationGroup = document.getElementById('dotation-group');
+        
+        // Fonction pour mettre à jour la visibilité des champs en fonction du statut
+        function updateDotationVisibility() {
+            if (statutSelect.value === 'Acceptée') {
+                dotationGroup.style.display = 'block';
+            } else {
+                dotationGroup.style.display = 'none';
+            }
+        }
+        
+        // Initialiser la visibilité des champs
+        updateDotationVisibility();
+        
+        // Écouter les changements sur le select de statut
+        statutSelect.addEventListener('change', updateDotationVisibility);
+    });
+</script>
+{% endblock %}

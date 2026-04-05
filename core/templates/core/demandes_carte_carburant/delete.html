@@ -1,0 +1,83 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">{{ title }}</h4>
+                    <div class="card-tools">
+                        <a href="{% url 'demandes_carte_carburant_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour à la liste
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h5><i class="icon fas fa-exclamation-triangle"></i> Attention !</h5>
+                        Êtes-vous sûr de vouloir supprimer la demande #{{ demande.id_demande }} ?
+                        <p class="mt-2">Cette action est irréversible.</p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Informations sur la demande</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>ID demande</th>
+                                    <td>{{ demande.id_demande }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Date demande</th>
+                                    <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Service</th>
+                                    <td>{{ demande.service }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Véhicule</th>
+                                    <td>{{ demande.vehicule }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Demandeur</th>
+                                    <td>{{ demande.utilisateur_demandeur }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Statut</th>
+                                    <td>
+                                        {% if demande.statut_demande == 'En attente' %}
+                                        <span class="badge badge-warning">{{ demande.statut_demande }}</span>
+                                        {% elif demande.statut_demande == 'Acceptée' %}
+                                        <span class="badge badge-success">{{ demande.statut_demande }}</span>
+                                        {% elif demande.statut_demande == 'Rejetée' %}
+                                        <span class="badge badge-danger">{{ demande.statut_demande }}</span>
+                                        {% elif demande.statut_demande == 'Close' %}
+                                        <span class="badge badge-secondary">{{ demande.statut_demande }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Confirmer la suppression
+                            </button>
+                            <a href="{% url 'demandes_carte_carburant_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

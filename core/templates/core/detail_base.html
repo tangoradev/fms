@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="{{ icon_class }} me-2"></i>{{ title }}
+        </h5>
+        <div>
+            <a href="{{ update_url }}" class="btn btn-warning text-white">
+                <i class="fas fa-edit me-1"></i>Modifier
+            </a>
+            <a href="{{ delete_url }}" class="btn btn-danger">
+                <i class="fas fa-trash me-1"></i>Supprimer
+            </a>
+            <a href="{{ list_url }}" class="btn btn-secondary">
+                <i class="fas fa-list me-1"></i>Retour à la liste
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% block detail_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

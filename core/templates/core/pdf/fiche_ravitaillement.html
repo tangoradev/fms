@@ -1,0 +1,149 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Fiche de Ravitaillement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .header-left {
+            width: 70%;
+        }
+        .header-right {
+            width: 30%;
+            text-align: right;
+        }
+        .logo {
+            width: auto;
+            height: auto;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        h1 {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        table, th, td {
+            border: 1px solid #000;
+        }
+        th, td {
+            padding: 4px;
+            text-align: left;
+            font-size: 11px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: normal;
+            width: 40%;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-style: italic;
+        }
+        .signature {
+            margin-top: 20px;
+            text-align: right;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <h3 style="display: inline-block; vertical-align: middle; margin-right: 10px; font-size: 12px; margin-top: 0; margin-bottom: 0;">Programme des Nations Unies pour le développement</h3>
+        </div>
+        <div class="header-right">
+            {% if logo_base64 %}
+            <img class="logo" src="data:image/jpg;base64,{{ logo_base64 }}" alt="Logo PNUD">
+            {% else %}
+            <div style="text-align: center; font-weight: bold;">PNUD</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <h1>RAVITAILLEMENT CARBURANT - {{ mois_annee }}</h1>
+
+    <table>
+        <tr>
+            <th>Date:</th>
+            <td>{{ demande.date_ravitaillement|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+            <th>Fournisseur :</th>
+            <td>{{ fournisseur }}</td>
+        </tr>
+        <tr>
+            <th>N° de la carte :</th>
+            <td>{{ demande.carte_carburant.numero_carte }}</td>
+        </tr>
+        <tr>
+            <th>Type de carburant:</th>
+            <td>{{ type_carburant }}</td>
+        </tr>
+        <tr>
+            <th>Dotation:</th>
+            <td>{{ dotation }}</td>
+        </tr>
+        <tr>
+            <th>Volume servi:</th>
+            <td>{{ demande.volume }} litres</td>
+        </tr>
+        <tr>
+            <th>Montant TTC:</th>
+            <td>{% if demande.montant_ttc %}{{ demande.montant_ttc|intcomma }} XOF{% else %}Non défini{% endif %}</td>
+        </tr>
+        <tr>
+            <th>Prix unitaire:</th>
+            <td>{% if demande.prix_unitaire_ttc %}{{ demande.prix_unitaire_ttc|intcomma }} XOF{% else %}Non défini{% endif %}</td>
+        </tr>
+        <tr>
+            <th>Véhicule:</th>
+            <td>{{ demande.vehicule.marque }} {{ demande.vehicule.modele }}</td>
+        </tr>
+        <tr>
+            <th>Immatricule</th>
+            <td>{{ demande.vehicule.immatriculation }}</td>
+        </tr>
+        <tr>
+            <th>Kilométrage :</th>
+            <td>{% if demande.km_vehicule %}{{ demande.km_vehicule|intcomma }} km{% else %}Non défini{% endif %}</td>
+        </tr>
+        <tr>
+            <th>Ancien solde :</th>
+            <td>{% if demande.ancien_solde_carte %}{{ demande.ancien_solde_carte|intcomma }} XOF{% else %}Non défini{% endif %}</td>
+        </tr>
+        <tr>
+            <th>Nouveau solde :</th>
+            <td>{% if demande.nouveau_solde_carte %}{{ demande.nouveau_solde_carte|intcomma }} XOF{% else %}Non défini{% endif %}</td>
+        </tr>
+        <tr>
+            <th>Chauffeur:</th>
+            <td>{{ demande.utilisateur_demandeur.get_full_name }}</td>
+        </tr>
+    </table>
+
+    <div class="signature">
+        Le Gestionnaire du carburant
+    </div>
+</body>
+</html>

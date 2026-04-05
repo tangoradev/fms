@@ -1,0 +1,402 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}FMS Mobile - Système de Gestion de Flotte{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Styles spécifiques pour l'interface mobile */
+    .mobile-card {
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+        margin-bottom: 15px;
+    }
+    
+    .mobile-card:active {
+        transform: scale(0.98);
+    }
+    
+    .mobile-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+    
+    .mobile-stats {
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .mobile-menu-item {
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        transition: all 0.2s;
+    }
+    
+    .mobile-menu-item:active {
+        transform: scale(0.98);
+    }
+    
+    .mobile-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #fff;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        padding: 10px 0;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+    
+    .mobile-bottom-nav .nav-item {
+        text-align: center;
+    }
+    
+    .mobile-bottom-nav .nav-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.8rem;
+    }
+    
+    .mobile-bottom-nav .nav-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+    
+    /* Ajustement du contenu principal pour éviter qu'il soit caché par la barre de navigation */
+    .mobile-content {
+        padding-bottom: 80px;
+    }
+    
+    /* Styles pour les badges de notification */
+    .notification-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: #dc3545;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 0.7rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    /* Animation pour les cartes */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animated-card {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+    
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mobile-content">
+    <div class="text-center mb-4">
+        <h1 class="display-6">FMS Mobile</h1>
+        <p class="text-muted">Gestion de Flotte Automobile</p>
+    </div>
+    
+    {% if user.is_authenticated %}
+    <!-- Statistiques rapides -->
+    <div class="row mb-4">
+        <div class="col-6 col-sm-3 mb-3">
+            <div class="mobile-stats bg-primary text-white animated-card delay-1">
+                <div class="d-flex flex-column align-items-center">
+                    <i class="fas fa-car mobile-icon"></i>
+                    <h2>{{ vehicules_count }}</h2>
+                    <span>Véhicules</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-3 mb-3">
+            <div class="mobile-stats bg-success text-white animated-card delay-2">
+                <div class="d-flex flex-column align-items-center">
+                    <i class="fas fa-credit-card mobile-icon"></i>
+                    <h2>{{ cartes_count }}</h2>
+                    <span>Cartes</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-3 mb-3">
+            <div class="mobile-stats bg-info text-white animated-card delay-3">
+                <div class="d-flex flex-column align-items-center">
+                    <i class="fas fa-store mobile-icon"></i>
+                    <h2>{{ fournisseurs_count }}</h2>
+                    <span>Fournisseurs</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-3 mb-3">
+            <div class="mobile-stats bg-warning text-white animated-card delay-4">
+                <div class="d-flex flex-column align-items-center">
+                    <i class="fas fa-gas-pump mobile-icon"></i>
+                    <h2>{{ achats_count }}</h2>
+                    <span>Achats</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Menu rapide -->
+    <h5 class="mb-3"><i class="fas fa-bolt me-2"></i>Actions rapides</h5>
+    <div class="row mb-4">
+        <div class="col-6 mb-3">
+            <a href="{% url 'vehicule_create' %}" class="text-decoration-none">
+                <div class="mobile-menu-item bg-light text-center">
+                    <i class="fas fa-plus-circle text-primary fa-2x mb-2"></i>
+                    <div>Ajouter véhicule</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 mb-3">
+            <a href="{% url 'carte_carburant_create' %}" class="text-decoration-none">
+                <div class="mobile-menu-item bg-light text-center">
+                    <i class="fas fa-plus-circle text-success fa-2x mb-2"></i>
+                    <div>Ajouter carte</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 mb-3">
+            <a href="{% url 'fournisseur_create' %}" class="text-decoration-none">
+                <div class="mobile-menu-item bg-light text-center">
+                    <i class="fas fa-plus-circle text-info fa-2x mb-2"></i>
+                    <div>Ajouter fournisseur</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 mb-3">
+            <a href="{% url 'achat_carburant_ttc_create' %}" class="text-decoration-none">
+                <div class="mobile-menu-item bg-light text-center">
+                    <i class="fas fa-plus-circle text-warning fa-2x mb-2"></i>
+                    <div>Enregistrer achat</div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Modules principaux -->
+    <h5 class="mb-3"><i class="fas fa-th-large me-2"></i>Modules</h5>
+    <div class="row">
+        <div class="col-12 mb-3">
+            <a href="{% url 'vehicules_list' %}" class="text-decoration-none">
+                <div class="mobile-card bg-white p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-car fa-2x text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Véhicules</h6>
+                            <small class="text-muted">Gestion de la flotte</small>
+                        </div>
+                        <div class="ms-auto">
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="col-12 mb-3">
+            <a href="{% url 'cartes_carburant_list' %}" class="text-decoration-none">
+                <div class="mobile-card bg-white p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-credit-card fa-2x text-success"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Cartes Carburant</h6>
+                            <small class="text-muted">Gestion des cartes</small>
+                        </div>
+                        <div class="ms-auto">
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="col-12 mb-3">
+            <a href="{% url 'fournisseurs_list' %}" class="text-decoration-none">
+                <div class="mobile-card bg-white p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-store fa-2x text-info"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Fournisseurs</h6>
+                            <small class="text-muted">Gestion des fournisseurs</small>
+                        </div>
+                        <div class="ms-auto">
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="col-12 mb-3">
+            <div class="dropdown">
+                <div class="mobile-card bg-white p-3" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-gas-pump fa-2x text-warning"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Achats Carburant</h6>
+                            <small class="text-muted">Gestion des achats</small>
+                        </div>
+                        <div class="ms-auto">
+                            <i class="fas fa-chevron-down text-muted"></i>
+                        </div>
+                    </div>
+                </div>
+                <ul class="dropdown-menu w-100">
+                    <li><a class="dropdown-item" href="{% url 'achats_carburant_ttc_list' %}">Achats TTC</a></li>
+                    <li><a class="dropdown-item" href="{% url 'achats_carburant_ht_list' %}">Achats HT</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dernières activités -->
+    <h5 class="mb-3 mt-4"><i class="fas fa-history me-2"></i>Dernières activités</h5>
+    <div class="mobile-card bg-white p-3">
+        {% if recent_activities %}
+        <div class="list-group list-group-flush">
+            {% for activity in recent_activities|slice:":5" %}
+            <div class="list-group-item border-0 px-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted">{{ activity.date|date:"d/m/Y H:i" }}</small>
+                        <div>{{ activity.description }}</div>
+                    </div>
+                    {% if activity.type == 'achat_ttc' %}
+                    <span class="badge bg-warning">TTC</span>
+                    {% else %}
+                    <span class="badge bg-info">HT</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-3">
+            <i class="fas fa-info-circle text-muted mb-2 fa-2x"></i>
+            <p class="mb-0">Aucune activité récente</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Navigation en bas de page -->
+    <nav class="mobile-bottom-nav">
+        <div class="container">
+            <div class="row">
+                <div class="col nav-item">
+                    <a href="{% url 'home' %}" class="nav-link text-primary">
+                        <i class="fas fa-home nav-icon"></i>
+                        <span>Accueil</span>
+                    </a>
+                </div>
+                <div class="col nav-item">
+                    <a href="{% url 'vehicules_list' %}" class="nav-link text-muted">
+                        <i class="fas fa-car nav-icon"></i>
+                        <span>Véhicules</span>
+                    </a>
+                </div>
+                <div class="col nav-item">
+                    <a href="{% url 'cartes_carburant_list' %}" class="nav-link text-muted">
+                        <i class="fas fa-credit-card nav-icon"></i>
+                        <span>Cartes</span>
+                    </a>
+                </div>
+                <div class="col nav-item">
+                    <a href="{% url 'achats_carburant_ttc_list' %}" class="nav-link text-muted">
+                        <div class="position-relative">
+                            <i class="fas fa-gas-pump nav-icon"></i>
+                            {% if achats_count > 0 %}
+                            <span class="notification-badge">{{ achats_count }}</span>
+                            {% endif %}
+                        </div>
+                        <span>Achats</span>
+                    </a>
+                </div>
+                <div class="col nav-item">
+                    <a href="{% url 'profile' %}" class="nav-link text-muted">
+                        <i class="fas fa-user nav-icon"></i>
+                        <span>Profil</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% else %}
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="fas fa-lock fa-4x text-muted"></i>
+        </div>
+        <h3>Connexion requise</h3>
+        <p class="text-muted mb-4">Veuillez vous connecter pour accéder à l'application mobile</p>
+        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Script pour l'interface mobile
+    document.addEventListener('DOMContentLoaded', function() {
+        // Détection de l'appareil
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            // Ajustements spécifiques pour les appareils mobiles
+            document.body.classList.add('mobile-device');
+        }
+        
+        // Gestion des animations
+        const animatedElements = document.querySelectorAll('.animated-card');
+        animatedElements.forEach(element => {
+            element.style.opacity = '0';
+        });
+        
+        // Déclencher les animations après un court délai
+        setTimeout(() => {
+            animatedElements.forEach(element => {
+                element.style.opacity = '1';
+            });
+        }, 100);
+        
+        // Gestion des interactions tactiles
+        const touchElements = document.querySelectorAll('.mobile-menu-item, .mobile-card');
+        touchElements.forEach(element => {
+            element.addEventListener('touchstart', function() {
+                this.classList.add('active');
+            });
+            
+            element.addEventListener('touchend', function() {
+                this.classList.remove('active');
+            });
+        });
+    });
+</script>
+{% endblock %}

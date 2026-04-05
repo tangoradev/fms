@@ -1,0 +1,276 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Tableau de bord Chauffeur</h1>
+
+    <!-- Statistiques -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Demandes en attente</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ demandes_en_attente_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Demandes acceptées</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ demandes_acceptees_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Demandes rejetées</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ demandes_rejetees_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-times fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Demandes clôturées</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ demandes_closes_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-flag-checkered fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Actions rapides</h6>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'demande_carte_carburant_create' %}" class="btn btn-primary btn-icon-split mr-2">
+                        <span class="icon text-white-50">
+                            <i class="fas fa-plus"></i>
+                        </span>
+                        <span class="text">Nouvelle demande de carte carburant</span>
+                    </a>
+                    <a href="{% url 'demandes_carte_carburant_list' %}" class="btn btn-info btn-icon-split">
+                        <span class="icon text-white-50">
+                            <i class="fas fa-list"></i>
+                        </span>
+                        <span class="text">Voir toutes mes demandes</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demandes à clôturer -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Demandes à clôturer</h6>
+                </div>
+                <div class="card-body">
+                    {% if demandes_a_cloturer %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>Véhicule</th>
+                                    <th>Carte</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for demande in demandes_a_cloturer %}
+                                <tr>
+                                    <td>{{ demande.id_demande }}</td>
+                                    <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ demande.vehicule }}</td>
+                                    <td>{{ demande.carte_carburant }}</td>
+                                    <td>
+                                        <a href="{% url 'demande_carte_carburant_detail' pk=demande.id_demande %}" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i> Détails
+                                        </a>
+                                        <a href="{% url 'demande_carte_carburant_cloture' pk=demande.id_demande %}" class="btn btn-success btn-sm">
+                                            <i class="fas fa-check-circle"></i> Clôturer
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Vous n'avez aucune demande à clôturer pour le moment.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dernières demandes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Mes dernières demandes</h6>
+                </div>
+                <div class="card-body">
+                    {% if demandes %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>Véhicule</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for demande in demandes %}
+                                <tr>
+                                    <td>{{ demande.id_demande }}</td>
+                                    <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ demande.vehicule }}</td>
+                                    <td>
+                                        {% if demande.statut_demande == 'En attente' %}
+                                        <span class="badge bg-warning text-dark fs-6 p-2 w-100 d-block text-center">{{ demande.statut_demande }}</span>
+                                        {% elif demande.statut_demande == 'Acceptée' %}
+                                        <span class="badge bg-success text-white fs-6 p-2 w-100 d-block text-center">{{ demande.statut_demande }}</span>
+                                        {% elif demande.statut_demande == 'Rejetée' %}
+                                        <span class="badge bg-danger text-white fs-6 p-2 w-100 d-block text-center">{{ demande.statut_demande }}</span>
+                                        {% elif demande.statut_demande == 'Close' %}
+                                        <span class="badge bg-secondary text-white fs-6 p-2 w-100 d-block text-center">{{ demande.statut_demande }}</span>
+                                        {% else %}
+                                        <!-- Fallback pour tout autre statut non reconnu -->
+                                        <span class="badge bg-secondary text-white fs-6 p-2 w-100 d-block text-center">{{ demande.statut_demande }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'demande_carte_carburant_detail' pk=demande.id_demande %}" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i> Détails
+                                        </a>
+                                        {% if demande.statut_demande == 'Acceptée' %}
+                                        <a href="{% url 'demande_carte_carburant_cloture' pk=demande.id_demande %}" class="btn btn-success btn-sm">
+                                            <i class="fas fa-check-circle"></i> Clôturer
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Vous n'avez aucune demande pour le moment.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mes véhicules -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Mes véhicules</h6>
+                </div>
+                <div class="card-body">
+                    {% if vehicules %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Immatriculation</th>
+                                    <th>Marque</th>
+                                    <th>Modèle</th>
+                                    <th>Kilométrage</th>
+                                    <th>Service</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vehicule in vehicules %}
+                                <tr>
+                                    <td>{{ vehicule.immatriculation }}</td>
+                                    <td>{{ vehicule.marque }}</td>
+                                    <td>{{ vehicule.modele }}</td>
+                                    <td>{{ vehicule.kilometrage }} km</td>
+                                    <td>{{ vehicule.service }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Aucun véhicule n'est associé à votre service.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('.table').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
+            }
+        });
+    });
+</script>
+{% endblock %}

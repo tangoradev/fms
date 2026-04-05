@@ -1,0 +1,23 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5>Saisie de l'exécution de la course</h5>
+        </div>
+        <div class="card-body">
+            <!-- Affichage du véhicule associé à la course -->
+            <div class="mb-3">
+                <label class="form-label"><strong>Véhicule associé :</strong></label>
+                <div>{{ planification.vehicule }}</div>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-success">Enregistrer l'exécution</button>
+                <a href="{{ retour_url }}" class="btn btn-secondary">Annuler</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'core/form_base.html' %}
+
+{% block title %}Supprimer un type de maintenance{% endblock %}
+
+{% block page_title %}
+<h1 class="mb-4">Supprimer un type de maintenance</h1>
+{% endblock %}
+
+{% block form_content %}
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">Confirmation de suppression</h5>
+    </div>
+    <div class="card-body">
+        <p class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            u00cates-vous su00fbr de vouloir supprimer le type de maintenance <strong>{{ object.libelle }}</strong> ?
+        </p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'type_maintenance_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Annuler
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash me-2"></i>Supprimer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

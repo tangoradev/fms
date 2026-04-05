@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}FMS - Système de Gestion de Flotte{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-car-side me-2"></i>FMS
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" aria-current="page" href="{% url 'home' %}">
+                            <i class="fas fa-home me-1"></i> Accueil
+                        </a>
+                    </li>
+                    
+                    {% if user.is_authenticated %}
+                    
+                    <!-- Tableaux de bord spécifiques aux rôles -->
+                    {% with user_groups=request.user.groupe.all|stringformat:"s" %}
+                    {% if 'Driver' in user_groups %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'demandes-carte-carburant' in request.path %}active{% endif %}" href="{% url 'demandes_carte_carburant_list' %}">
+                            <i class="fas fa-tachometer-alt me-1"></i> Tableau de bord Chauffeur
+                        </a>
+                    </li>
+                    {% elif 'Gestionnaire Carburant' in user_groups %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'demandes-carte-carburant' in request.path %}active{% endif %}" href="{% url 'demandes_carte_carburant_list' %}">
+                            <i class="fas fa-tachometer-alt me-1"></i> Tableau de bord Gestionnaire
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endwith %}
+                    
+                    <!-- Menu Demandes avec sous-menus -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'demandes-carte-carburant' in request.path or 'demandes-courses' in request.path %}active{% endif %}" href="#" id="demandesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-file-alt me-1"></i> Demandes
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="demandesDropdown">
+                            <li>
+                                <a class="dropdown-item {% if 'demandes-carte-carburant' in request.path %}active{% endif %}" href="{% url 'demandes_carte_carburant_list' %}">
+                                    <i class="fas fa-credit-card me-1"></i> Demandes Carte Carburant
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if 'demandes-courses' in request.path %}active{% endif %}" href="{% url 'demandes_course_list' %}">
+                                    <i class="fas fa-taxi me-1"></i> Demandes Courses
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'planification_courses' %}">
+                                    <i class="fas fa-calendar me-1"></i> Planification Courses
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Menu Carburant avec sous-menus - visible pour tous sauf les chauffeurs -->
+                    {% with user_groups=user.groupe.all|stringformat:"s" %}
+                    {% if 'Driver' not in user_groups or user.is_staff %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="carburantDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-gas-pump me-1"></i> Carburant
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="carburantDropdown">
+                            <li><a class="dropdown-item" href="{% url 'fournisseurs_list' %}"><i class="fas fa-store me-1"></i> Fournisseurs</a></li>
+                            <li><a class="dropdown-item" href="{% url 'vehicules_list' %}"><i class="fas fa-car me-1"></i> Véhicules</a></li>
+                            <li><a class="dropdown-item" href="{% url 'cartes_carburant_list' %}"><i class="fas fa-credit-card me-1"></i> Cartes Carburant</a></li>
+                            <li><a class="dropdown-item" href="{% url 'achats_carburant_ht_list' %}"><i class="fas fa-shopping-cart me-1"></i> Achats Carburant HT</a></li>
+                            <li><a class="dropdown-item" href="{% url 'achats_carburant_ttc_list' %}"><i class="fas fa-shopping-cart me-1"></i> Achats Carburant TTC</a></li>
+                            <li><a class="dropdown-item" href="{% url 'suivi_dotations' %}"><i class="fas fa-chart-pie me-1"></i> Suivi Dotations</a></li>
+                            <li><a class="dropdown-item" href="{% url 'dashboard_carburant' %}"><i class="fas fa-tachometer-alt me-1"></i> Tableau de Bord</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'etat_ravitaillements' %}"><i class="fas fa-file-invoice me-1"></i> État ravitaillements</a></li>
+                            <li><a class="dropdown-item" href="{% url 'releve_consommation_carburant' %}"><i class="fas fa-file-alt me-1"></i> Relevé de Consommation</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% endwith %}
+                    
+                    <!-- Menu Maintenance avec sous-menus -->
+                    {% with user_groups=user.groupe.all|stringformat:"s" %}
+                    {% if user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="maintenanceDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-tools"></i> Maintenance
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="maintenanceDropdown">
+                            <li><a class="dropdown-item" href="{% url 'type_maintenance_list' %}">Types de maintenance</a></li>
+                            <li><a class="dropdown-item" href="{% url 'maintenance_list' %}">Maintenances</a></li>
+                            <li><a class="dropdown-item" href="{% url 'planification_list' %}">Planifications</a></li>
+                            <li><a class="dropdown-item" href="{% url 'maintenance_report' %}">Rapport maintenance</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% endwith %}
+                    
+                    {% if user.is_staff %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-cogs me-1"></i> Administration
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'utilisateurs_view' %}"><i class="fas fa-users me-1"></i> Utilisateurs</a></li>
+                            <li><a class="dropdown-item" href="{% url 'services_view' %}"><i class="fas fa-building me-1"></i> Services</a></li>
+                            <li><a class="dropdown-item" href="{% url 'groupes_view' %}"><i class="fas fa-user-friends me-1"></i> Groupes</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'mobile' %}"><i class="fas fa-mobile-alt me-1"></i> Version Mobile</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-1"></i> {{ user.get_full_name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user-cog me-1"></i> Profil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-1"></i> Déconnexion</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}"><i class="fas fa-sign-in-alt me-1"></i> Connexion</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light text-center text-lg-start mt-5">
+        <div class="container p-4">
+            <div class="row">
+                <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">FMS - Fleet Management System</h5>
+                    <p>
+                        Système de gestion de flotte automobile développé pour optimiser la gestion des véhicules, 
+                        du carburant, de la maintenance, des assurances, des visites techniques, des courses et de la distribution de courrier.
+                    </p>
+                </div>
+                <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">Contact</h5>
+                    <p>
+                        <i class="fas fa-building me-2"></i> PNUD Côte d'Ivoire<br>
+                        <i class="fas fa-envelope me-2"></i> registry.ci@undp.org<br>
+                        <i class="fas fa-phone me-2"></i> +225 2720317400
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.05);">
+            &copy; 2025 - PNUD Côte d'Ivoire - Tous droits réservés
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'core/js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

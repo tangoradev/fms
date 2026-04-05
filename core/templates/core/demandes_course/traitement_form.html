@@ -1,0 +1,39 @@
+{% extends 'core/form_base.html' %}
+{% block title %}Traitement de la demande de course{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Traitement de la demande de course</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="mb-3">
+            {{ form.statut.label_tag }}
+            {{ form.statut }}
+        </div>
+        <div id="block-justification" class="mb-3" style="display: none;">
+            {{ form.justification_rejet.label_tag }}
+            {{ form.justification_rejet }}
+        </div>
+        <div id="block-chauffeur" class="mb-3" style="display: none;">
+            {{ form.id_utilisateur.label_tag }}
+            {{ form.id_utilisateur }}
+        </div>
+        <div id="block-vehicule" class="mb-3" style="display: none;">
+            {{ form.id_vehicule.label_tag }}
+            {{ form.id_vehicule }}
+        </div>
+        <button type="submit" class="btn btn-success">Valider</button>
+        <a href="{% url 'demandes_course_list' %}" class="btn btn-secondary">Annuler</a>
+    </form>
+</div>
+<script>
+    function toggleFields() {
+        const statut = document.getElementById('id_statut').value;
+        document.getElementById('block-justification').style.display = (statut === 'rejetée') ? 'block' : 'none';
+        document.getElementById('block-chauffeur').style.display = (statut === 'acceptée') ? 'block' : 'none';
+        document.getElementById('block-vehicule').style.display = (statut === 'acceptée') ? 'block' : 'none';
+    }
+    document.getElementById('id_statut').addEventListener('change', toggleFields);
+    window.onload = toggleFields;
+</script>
+{% endblock %}

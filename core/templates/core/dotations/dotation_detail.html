@@ -1,0 +1,322 @@
+{% extends 'core/base.html' %}
+
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Détails de la dotation: {{ dotation.libelle }}</h3>
+                    <div class="float-right">
+                        <a href="{% url 'suivi_dotations' %}" class="btn btn-secondary">Retour</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="card-title mb-0">Informations générales</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <th>Libellé</th>
+                                            <td>{{ dotation.libelle }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Type</th>
+                                            <td>{% if dotation_type == 'ht' %}Achat HT{% else %}Achat TTC{% endif %}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Service</th>
+                                            <td>{{ dotation.service.nom_service }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Date d'achat</th>
+                                            <td>{{ dotation.date_achat|date:"d/m/Y" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Type de carburant</th>
+                                            <td>{{ dotation.get_type_carburant_display }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Volume</th>
+                                            <td>{{ dotation.volume }} litres</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Montant TTC</th>
+                                            <td>{{ dotation.format_montant_ttc }}</td>
+                                        </tr>
+                                        {% if dotation_type == 'ht' %}
+                                        <tr>
+                                            <th>Montant HT</th>
+                                            <td>{{ dotation.format_montant_ht }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Taux de taxe</th>
+                                            <td>{{ dotation.tx_taxe|floatformat:2 }}%</td>
+                                        </tr>
+                                        {% endif %}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="card-title mb-0">Utilisation de la dotation</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-4">
+                                        <h6>Progression de l'utilisation</h6>
+                                        <div class="progress" style="height: 25px;">
+                                            <div class="progress-bar {% if pourcentage_utilisation < 50 %}bg-success{% elif pourcentage_utilisation < 80 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                 role="progressbar" 
+                                                 style="width: {{ pourcentage_utilisation }}%;"
+                                                 aria-valuenow="{{ pourcentage_utilisation }}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                                {{ pourcentage_utilisation }}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <th>Montant total</th>
+                                            <td>{{ dotation.montant_ttc|floatformat:0|intcomma }} FCFA</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Montant utilisé</th>
+                                            <td>{{ montant_utilise|floatformat:0|intcomma }} FCFA</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Solde restant</th>
+                                            <td>{{ solde_restant|floatformat:0|intcomma }} FCFA</td>
+                                        </tr>
+                                    </table>
+
+                                    <div class="card mt-4">
+                                        <div class="card-header bg-warning text-dark">
+                                            <h5 class="card-title mb-0">Solde Rechargements de cartes</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <table class="table table-bordered">
+                                                <tr>
+                                                    <th>Total Rechargements</th>
+                                                    <td>{{ total_rechargements|floatformat:0|intcomma }} FCFA</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Total Ravitaillements</th>
+                                                    <td>{{ total_demandes_ravitaillement|floatformat:0|intcomma }} FCFA</td>
+                                                </tr>
+                                                <tr class="table-warning">
+                                                    <th>Solde Rechargements</th>
+                                                    <td><strong>{{ solde_rechargements|floatformat:0|intcomma }} FCFA</strong></td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="card-title mb-0">Rechargements de cartes</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Carte</th>
+                                                    <th>Service</th>
+                                                    <th>Volume (litres)</th>
+                                                    <th>Montant (FCFA)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for rechargement in rechargements %}
+                                                <tr>
+                                                    <td>{{ rechargement.date_rechargement|date:"d/m/Y" }}</td>
+                                                    <td>{{ rechargement.carte_carburant.numero_carte }}</td>
+                                                    <td>{{ rechargement.carte_carburant.service.nom_service }}</td>
+                                                    <td>{{ rechargement.volume }}</td>
+                                                    <td>{{ rechargement.montant_ttc|floatformat:0|intcomma }}</td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="5" class="text-center">Aucun rechargement trouvé</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr class="bg-light">
+                                                    <th colspan="3">Total</th>
+                                                    <th>{{ total_volume|floatformat:2 }} litres</th>
+                                                    <th>{{ montant_utilise|floatformat:0|intcomma }} FCFA</th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="card-title mb-0">Demandes de ravitaillement associées</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Date</th>
+                                                    <th>Chauffeur</th>
+                                                    <th>Véhicule</th>
+                                                    <th>Carte</th>
+                                                    <th>Station</th>
+                                                    <th>Volume</th>
+                                                    <th>Montant</th>
+                                                    <th>Statut</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for demande in demandes %}
+                                                <tr>
+                                                    <td>#{{ demande.id_demande }}</td>
+                                                    <td>{{ demande.date_demande|date:"d/m/Y" }}</td>
+                                                    <td>{{ demande.utilisateur_demandeur.get_full_name }}</td>
+                                                    <td>{{ demande.vehicule.immatriculation }}</td>
+                                                    <td>
+                                                        {% if demande.rechargement_ht %}
+                                                            {{ demande.rechargement_ht.carte_carburant.numero_carte }}
+                                                        {% elif demande.rechargement_ttc %}
+                                                            {{ demande.rechargement_ttc.carte_carburant.numero_carte }}
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ demande.station_service|default:"-" }}</td>
+                                                    <td>{{ demande.volume|default:"0" }} litres</td>
+                                                    <td>{{ demande.montant_ttc|floatformat:0|intcomma|default:"0" }} FCFA</td>
+                                                    <td class="text-center">
+                                                        {% if demande.statut_demande == 'En attente' %}
+                                                            <span class="badge rounded-pill bg-warning text-dark" style="font-size: 14px; padding: 8px 12px; font-weight: bold;">
+                                                                {{ demande.get_statut_demande_display }}
+                                                            </span>
+                                                        {% elif demande.statut_demande == 'Acceptée' %}
+                                                            <span class="badge rounded-pill bg-primary text-white" style="font-size: 14px; padding: 8px 12px; font-weight: bold;">
+                                                                {{ demande.get_statut_demande_display }}
+                                                            </span>
+                                                        {% elif demande.statut_demande == 'Close' %}
+                                                            <span class="badge rounded-pill bg-success text-white" style="font-size: 14px; padding: 8px 12px; font-weight: bold;">
+                                                                {{ demande.get_statut_demande_display }}
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="badge rounded-pill bg-danger text-white" style="font-size: 14px; padding: 8px 12px; font-weight: bold;">
+                                                                {{ demande.get_statut_demande_display }}
+                                                            </span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <a href="{% url 'demande_carte_carburant_detail' demande.id_demande %}" class="btn btn-sm btn-info">Détails</a>
+                                                    </td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="10" class="text-center">Aucune demande trouvée</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    {% if demandes.paginator.num_pages > 1 %}
+                                    <nav aria-label="Pagination des demandes de ravitaillement">
+                                        <ul class="pagination justify-content-center">
+                                            {% if demandes.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page=1" aria-label="Première page">
+                                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                                </a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ demandes.previous_page_number }}" aria-label="Page précédente">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                            {% else %}
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" aria-label="Première page">
+                                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                                </a>
+                                            </li>
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" aria-label="Page précédente">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                            
+                                            {% for num in demandes.paginator.page_range %}
+                                                {% if demandes.number == num %}
+                                                <li class="page-item active"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                                {% elif num > demandes.number|add:'-3' and num < demandes.number|add:'3' %}
+                                                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                                {% endif %}
+                                            {% endfor %}
+                                            
+                                            {% if demandes.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ demandes.next_page_number }}" aria-label="Page suivante">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ demandes.paginator.num_pages }}" aria-label="Dernière page">
+                                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                                </a>
+                                            </li>
+                                            {% else %}
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" aria-label="Page suivante">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" aria-label="Dernière page">
+                                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                        </ul>
+                                    </nav>
+                                    <div class="text-center mt-2">
+                                        <small class="text-muted">Page {{ demandes.number }} sur {{ demandes.paginator.num_pages }} ({{ demandes_list|length }} demandes au total)</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

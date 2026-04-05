@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Demande de carte carburant rejetée</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .header {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            padding: 20px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 10px 20px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #666;
+            border-radius: 0 0 5px 5px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .info {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Demande de carte carburant rejetée</h2>
+        </div>
+        <div class="content">
+            <p>Bonjour {{ demande.utilisateur_demandeur.get_full_name }},</p>
+            
+            <p>Votre demande de carte carburant a été <strong>rejetée</strong>.</p>
+            
+            <div class="info">
+                <p><strong>Détails de la demande :</strong></p>
+                <ul>
+                    <li><strong>Véhicule :</strong> {{ vehicule.immatriculation }} - {{ vehicule.marque }} {{ vehicule.modele }}</li>
+                    <li><strong>Service :</strong> {{ service.nom_service }}</li>
+                    <li><strong>Date de la demande :</strong> {{ demande.date_demande|date:"d/m/Y H:i" }}</li>
+                    <li><strong>Date de traitement :</strong> {{ demande.date_traitement|date:"d/m/Y H:i" }}</li>
+                    <li><strong>Gestionnaire :</strong> {{ gestionnaire.get_full_name }}</li>
+                    {% if demande.commentaire_traitement %}
+                    <li><strong>Motif du rejet :</strong> {{ demande.commentaire_traitement }}</li>
+                    {% endif %}
+                </ul>
+            </div>
+            
+            <p>Si vous avez des questions concernant cette décision, veuillez contacter le gestionnaire carburant de votre service.</p>
+            
+            <a href="{{ url }}" class="btn">Voir la demande</a>
+            
+            <p>Cordialement,</p>
+            <p>L'équipe FMS - Fleet Management System</p>
+        </div>
+        <div class="footer">
+            <p>Ce message a été envoyé automatiquement par le système FMS. Merci de ne pas y répondre.</p>
+            <p>&copy; {% now "Y" %} PNUD Côte d'Ivoire - Tous droits réservés</p>
+        </div>
+    </div>
+</body>
+</html>

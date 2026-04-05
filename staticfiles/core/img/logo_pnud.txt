@@ -1,0 +1,5 @@
+Pour ajouter le logo PNUD, veuillez télécharger une image du logo PNUD officiel et la renommer en "logo_pnud.png" dans ce dossier.
+
+Le logo PNUD est généralement un carré bleu avec les lettres PNUD en blanc, ou le logo des Nations Unies avec les lettres PNUD en dessous.
+
+Vous pouvez le télécharger depuis le site officiel du PNUD ou depuis des banques d'images libres de droits.

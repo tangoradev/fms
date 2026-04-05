@@ -1,0 +1,47 @@
+{% extends 'core/list_base.html' %}
+{% block title %}Mes demandes de course{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Mes demandes de course</h2>
+    <a href="{% url 'demande_course_create' %}" class="btn btn-success mb-3">Nouvelle demande de course</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date de demande</th>
+                <th>Lieu départ</th>
+                <th>Lieu arrivée</th>
+                <th>Date/heure prévue</th>
+                <th>Date/heure retour</th>
+                <th>Objet</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for demande in demandes %}
+            <tr>
+                <td>{{ demande.date_demande|date:'d/m/Y H:i' }}</td>
+                <td>{{ demande.lieu_depart }}</td>
+                <td>{{ demande.lieu_arrivee }}</td>
+                <td>{{ demande.date_heure_prevue|date:'d/m/Y H:i' }}</td>
+                <td>{{ demande.date_heure_fin_retour|date:'d/m/Y H:i' }}</td>
+                <td>{{ demande.objet }}</td>
+                <td>{{ demande.get_statut_display }}</td>
+                <td>
+                    <a href="{% url 'demande_course_detail' demande.pk %}" class="btn btn-info btn-sm">Voir</a>
+                    {% if demande.id_utilisateur == user or user.is_staff %}
+                        <a href="{% url 'demande_course_update' demande.pk %}" class="btn btn-warning btn-sm">Modifier</a>
+                        {# <a href="{% url 'demande_course_delete' demande.pk %}" class="btn btn-danger btn-sm">Supprimer</a> #}
+                    {% endif %}
+                    {% if is_driver_principal %}
+                        <a href="{% url 'demande_course_traitement' demande.pk %}" class="btn btn-sm btn-warning">Traiter</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8">Aucune demande de course trouvée.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

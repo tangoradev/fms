@@ -1,0 +1,360 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+{% load core_extras %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        body {
+            width: 297mm;
+            height: 210mm;
+            margin: 0;
+            padding: 0;
+            font-size: 11px;
+        }
+        .container-fluid {
+            width: 100%;
+            padding: 10mm;
+        }
+        .no-print {
+            display: none !important;
+        }
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .card-header, .card-footer {
+            display: none !important;
+        }
+        .table-bordered {
+            border: 1px solid #dee2e6 !important;
+        }
+        .table-bordered th, .table-bordered td {
+            border: 1px solid #dee2e6 !important;
+        }
+        .page-header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+        }
+        .page-header h2 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #343a40;
+        }
+        .page-footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 8px;
+            padding: 5px 0;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+        h4 {
+            font-size: 12px;
+            color: #495057;
+            margin-bottom: 5px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .table {
+            font-size: 10px;
+            margin-bottom: 0.5rem;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            color: #495057;
+            padding: 0.2rem;
+        }
+        .table td {
+            padding: 0.2rem;
+        }
+        .table-sm td, .table-sm th {
+            padding: 0.15rem;
+        }
+        .alert-info {
+            background-color: #f8f9fa;
+            border-color: #e9ecef;
+            color: #6c757d;
+            font-size: 9px;
+            padding: 5px;
+            margin-bottom: 0.5rem;
+        }
+        .alert-info p, .alert-info ul {
+            margin-bottom: 3px;
+        }
+        .alert-info ul {
+            padding-left: 20px;
+        }
+        .row {
+            margin-right: -5px;
+            margin-left: -5px;
+        }
+        .col-md-6, .col-12 {
+            padding-right: 5px;
+            padding-left: 5px;
+        }
+        .mb-4 {
+            margin-bottom: 0.5rem !important;
+        }
+        .mt-4 {
+            margin-top: 0.5rem !important;
+        }
+        .dotation-info td {
+            min-width: 200px;
+            white-space: nowrap;
+        }
+    }
+    
+    /* Styles pour l'affichage à l'écran */
+    .export-buttons {
+        margin-bottom: 15px;
+    }
+    
+    .export-btn {
+        margin-right: 5px;
+    }
+    
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 0.5rem;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    
+    .table-container {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+    
+    .table-bordered {
+        border: 1px solid #dee2e6;
+    }
+    
+    .table-bordered th, .table-bordered td {
+        border: 1px solid #dee2e6;
+    }
+    
+    .table thead th {
+        vertical-align: bottom;
+        border-bottom: 2px solid #dee2e6;
+        background-color: #f8f9fa;
+    }
+    
+    .info-section {
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .info-section h4 {
+        color: #495057;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 0.3rem;
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+    }
+    
+    .info-table {
+        margin-bottom: 0;
+    }
+    
+    .info-table th {
+        width: 30%;
+        background-color: #f8f9fa;
+    }
+    
+    .dotation-info td {
+        min-width: 200px;
+        white-space: nowrap;
+    }
+    
+    /* Layout paysage */
+    @media print {
+        @page {
+            size: landscape;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{{ title }}</h3>
+                    <div class="card-tools">
+                        <button class="btn btn-sm btn-outline-primary no-print" onclick="window.print()">
+                            <i class="fas fa-print"></i> Imprimer
+                        </button>
+                        <button class="btn btn-sm btn-outline-success no-print" onclick="exportToPDF()">
+                            <i class="fas fa-file-pdf"></i> Exporter en PDF
+                        </button>
+                        <a href="{% url 'releve_consommation_carburant' %}" class="btn btn-sm btn-outline-secondary no-print">
+                            <i class="fas fa-sync"></i> Nouveau relevé
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- En-tête pour l'impression -->
+                    <div class="page-header">
+                        <h3>{{ title }}</h3>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="info-section">
+                                <h4>Informations de la dotation</h4>
+                                <table class="table table-sm table-bordered info-table dotation-info">
+                                    <tr>
+                                        <th style="width: 15%">Type de dotation</th>
+                                        <td style="width: 35%">
+                                            {% if dotation_type == 'ht' %}
+                                                Dotation HT
+                                            {% else %}
+                                                Dotation TTC
+                                            {% endif %}
+                                        </td>
+                                        <th style="width: 15%">Volume total</th>
+                                        <td style="width: 35%">{{ dotation.volume|floatformat:2|intcomma }} L</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Libellé</th>
+                                        <td>{{ dotation.libelle }}</td>
+                                        <th>Service</th>
+                                        <td>{% if service %}{{ service.nom_service }}{% else %}-{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Montant total</th>
+                                        <td>{{ dotation.montant_ttc|intcomma }} FCFA</td>
+                                        <th>Mois</th>
+                                        <td>{{ mois }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="alert alert-info">
+                                <p><strong>Note:</strong> Ce relevé présente la consommation de carburant pour la période spécifiée, basée sur les dates de ravitaillement.</p>
+                                <ul>
+                                    <li><strong>SOLDE D'OUVERTURE</strong>: Solde des recharges de cartes avant le premier ravitaillement du mois.</li>
+                                    <li><strong>CONSOMMATION</strong>: Total du carburant consommé pendant le mois à partir de la recharge associée à la dotation.</li>
+                                    <li><strong>SOLDE DE CLÔTURE</strong>: Solde des recharges de cartes à la fin du mois.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4 class="mb-2">Relevé de consommation par carte</h4>
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr class="bg-light">
+                                        <th rowspan="2" class="align-middle text-center">Carte</th>
+                                        <th colspan="2" class="text-center">SOLDE D'OUVERTURE</th>
+                                        <th colspan="2" class="text-center">CONSOMMATION</th>
+                                        <th colspan="2" class="text-center">SOLDE DE CLÔTURE</th>
+                                    </tr>
+                                    <tr class="bg-light">
+                                        <th class="text-center">Volume (L)</th>
+                                        <th class="text-center">Montant (FCFA)</th>
+                                        <th class="text-center">Volume (L)</th>
+                                        <th class="text-center">Montant (FCFA)</th>
+                                        <th class="text-center">Volume (L)</th>
+                                        <th class="text-center">Montant (FCFA)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for carte in cartes %}
+                                    <tr>
+                                        <td class="text-center">{{ carte.numero_carte }}</td>
+                                        <td class="text-right">{{ soldes_ouverture|get_item:carte.numero_carte|get_item:'volume'|floatformat:2|intcomma }}</td>
+                                        <td class="text-right">{{ soldes_ouverture|get_item:carte.numero_carte|get_item:'montant'|intcomma }}</td>
+                                        <td class="text-right">{{ consommations|get_item:carte.numero_carte|get_item:'volume'|floatformat:2|intcomma }}</td>
+                                        <td class="text-right">{{ consommations|get_item:carte.numero_carte|get_item:'montant'|intcomma }}</td>
+                                        <td class="text-right">{{ soldes_cloture|get_item:carte.numero_carte|get_item:'volume'|floatformat:2|intcomma }}</td>
+                                        <td class="text-right">{{ soldes_cloture|get_item:carte.numero_carte|get_item:'montant'|intcomma }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot class="font-weight-bold bg-light">
+                                    <tr>
+                                        <td class="text-center">TOTAL</td>
+                                        <td class="text-right">{{ total_volume_ouverture|floatformat:2|intcomma }}</td>
+                                        <td class="text-right">{{ total_montant_ouverture|intcomma }}</td>
+                                        <td class="text-right">{{ total_volume_consommation|floatformat:2|intcomma }}</td>
+                                        <td class="text-right">{{ total_montant_consommation|intcomma }}</td>
+                                        <td class="text-right">{{ total_volume_cloture|floatformat:2|intcomma }}</td>
+                                        <td class="text-right">{{ total_montant_cloture|intcomma }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Pied de page pour l'impression -->
+                    <div class="page-footer">
+                        <p>Document généré le {% now "d/m/Y à H:i" %}</p>
+                    </div>
+                </div>
+                <div class="card-footer text-center no-print">
+                    <a href="{% url 'suivi_dotations' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function exportToPDF() {
+    // Masquer temporairement les éléments qui ne doivent pas être dans le PDF
+    const elementsToHide = document.querySelectorAll('.no-print');
+    elementsToHide.forEach(el => {
+        el.style.display = 'none';
+    });
+    
+    // Configuration pour html2pdf
+    const element = document.querySelector('.card-body');
+    const opt = {
+        margin: [10, 10, 10, 10],
+        filename: 'releve_consommation_{{ mois|slugify }}.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+    
+    // Générer le PDF
+    html2pdf().set(opt).from(element).save().then(() => {
+        // Rétablir l'affichage des éléments masqués
+        elementsToHide.forEach(el => {
+            el.style.display = '';
+        });
+    });
+}
+</script>
+{% endblock %}

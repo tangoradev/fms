@@ -1,0 +1,223 @@
+{% extends 'core/form_base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}
+<h1 class="mb-4">{{ title }}</h1>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const vehiculeSelect = document.getElementById('id_vehicule');
+        const kmVehiculeInput = document.getElementById('id_km_vehicule');
+        
+        // Fonction pour charger le kilométrage actuel du véhicule
+        function loadVehiculeKilometrage() {
+            if (vehiculeSelect.value) {
+                fetch(`/api/vehicule/${vehiculeSelect.value}/kilometrage/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Définir la valeur minimale pour le kilométrage après intervention - SUPPRIMÉ
+                        // kmVehiculeInput.min = data.kilometrage + 1;
+                        
+                        // Si le champ km_vehicule est vide, proposer une valeur par défaut (kilométrage actuel)
+                        if (!kmVehiculeInput.value) {
+                            kmVehiculeInput.value = data.kilometrage;
+                        }
+                    })
+                    .catch(error => console.error('Erreur lors du chargement du kilométrage:', error));
+            } else {
+                kmVehiculeInput.min = 0;
+            }
+        }
+        
+        // Charger le kilométrage au chargement de la page si un véhicule est déjà sélectionné
+        if (vehiculeSelect.value) {
+            loadVehiculeKilometrage();
+        }
+        
+        // Charger le kilométrage lorsque le véhicule change
+        vehiculeSelect.addEventListener('change', loadVehiculeKilometrage);
+        
+        // La validation côté client a été supprimée pour permettre la régularisation
+        // des maintenances passées avec des kilométrages antérieurs
+    });
+</script>
+{% endblock %}
+
+{% block form_content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">{{ title }}</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="id_service" class="form-label">Service</label>
+                    {{ form.service }}
+                    {% if form.service.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.service.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="id_vehicule" class="form-label">Véhicule</label>
+                    {{ form.vehicule }}
+                    {% if form.vehicule.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.vehicule.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="id_type_maintenance" class="form-label">Type de maintenance</label>
+                    {{ form.type_maintenance }}
+                    {% if form.type_maintenance.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.type_maintenance.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="id_fournisseur" class="form-label">Fournisseur</label>
+                    {{ form.fournisseur }}
+                    {% if form.fournisseur.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.fournisseur.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="id_date" class="form-label">Date de maintenance</label>
+                    {{ form.date }}
+                    {% if form.date.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.date.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="id_km_vehicule" class="form-label">Kilométrage après intervention</label>
+                    {{ form.km_vehicule }}
+                    {% if form.km_vehicule.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.km_vehicule.errors }}
+                    </div>
+                    {% endif %}
+                    <small class="form-text text-muted">Kilométrage du véhicule au moment de la maintenance (peut être antérieur au kilométrage actuel pour régularisation)</small>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="id_montant" class="form-label">Montant (FCFA)</label>
+                    {{ form.montant }}
+                    {% if form.montant.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.montant.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="id_facture" class="form-label">Facture (obligatoire)</label>
+                    {{ form.facture }}
+                    {% if form.facture.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.facture.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="id_detail" class="form-label">Détail de la maintenance</label>
+                {{ form.detail }}
+                {% if form.detail.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.detail.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">Périodicité et alertes</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_periodicite_km" class="form-label">Périodicité kilométrique</label>
+                            {{ form.periodicite_km }}
+                            {% if form.periodicite_km.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.periodicite_km.errors }}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Kilométrage avant la prochaine maintenance de ce type</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_alerte_km" class="form-label">Marge d'alerte kilométrique</label>
+                            {{ form.alerte_km }}
+                            {% if form.alerte_km.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.alerte_km.errors }}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Marge d'alerte en kilomètres avant l'échéance</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_periodicite_mois" class="form-label">Périodicité en mois</label>
+                            {{ form.periodicite_mois }}
+                            {% if form.periodicite_mois.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.periodicite_mois.errors }}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Nombre de mois avant la prochaine maintenance de ce type</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_alerte_mois" class="form-label">Marge d'alerte en mois</label>
+                            {{ form.alerte_mois }}
+                            {% if form.alerte_mois.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.alerte_mois.errors }}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Marge d'alerte en mois avant l'échéance</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'maintenance_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Retour
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>{{ submit_text }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

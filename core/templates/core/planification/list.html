@@ -1,0 +1,118 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Planifications de maintenance{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Planifications de maintenance</h1>
+    </div>
+    
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Liste des planifications</h5>
+        </div>
+        <div class="card-body">
+            {% if planifications %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Véhicule</th>
+                            <th>Type de maintenance</th>
+                            <th>Échéance kilométrique</th>
+                            <th>Échéance de date</th>
+                            <th>Statut</th>
+                            <th>Alertes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for planification in planifications %}
+                        <tr>
+                            <td>{{ planification.service.nom_service }}</td>
+                            <td>{{ planification.vehicule }}</td>
+                            <td>{{ planification.type_maintenance.libelle }}</td>
+                            <td>
+                                {{ planification.prochaine_echeance_km|stringformat:"d"|slice:":3" }} {{ planification.prochaine_echeance_km|stringformat:"d"|slice:"3:" }} km
+                                <div class="progress mt-1" style="height: 5px;">
+                                    {% with pourcentage=planification.get_pourcentage_progression_km %}
+                                    <div class="progress-bar 
+                                        {% if pourcentage >= 90 %}
+                                            bg-danger
+                                        {% elif pourcentage >= 75 %}
+                                            bg-warning
+                                        {% else %}
+                                            bg-success
+                                        {% endif %}" 
+                                         role="progressbar" 
+                                         style="width: {{ pourcentage }}%;" 
+                                         aria-valuenow="{{ pourcentage }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                    </div>
+                                    {% endwith %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if planification.prochaine_echeance_date %}
+                                {{ planification.prochaine_echeance_date|date:"d/m/Y" }}
+                                {% else %}
+                                <span class="text-muted">Non définie</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% with statut=planification.get_statut %}
+                                {% if statut == "En retard" %}
+                                <span class="badge bg-danger">En retard</span>
+                                {% elif statut == "En alerte" %}
+                                <span class="badge bg-warning text-dark">En alerte</span>
+                                {% else %}
+                                <span class="badge bg-success">Planifiée</span>
+                                {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                {% with km_diff=planification.prochaine_echeance_km|add:"-"|add:planification.vehicule.kilometrage %}
+                                {% with date_diff=planification.prochaine_echeance_date|timeuntil|default:"" %}
+                                
+                                {% if km_diff < 0 or date_diff == "0 minutes" or date_diff == "" and planification.prochaine_echeance_date and planification.prochaine_echeance_date < today %}
+                                <!-- Niveau d'alerte rouge - Échéances dépassées -->
+                                <div class="d-flex justify-content-center">
+                                    <span class="badge rounded-pill bg-danger p-2" style="font-size: 1.2em;" title="Échéance dépassée">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </span>
+                                </div>
+                                {% elif km_diff <= 100 or date_diff and "month" not in date_diff and "year" not in date_diff %}
+                                <!-- Niveau d'alerte jaune - Échéances proches du seuil -->
+                                <div class="d-flex justify-content-center">
+                                    <span class="badge rounded-pill bg-warning p-2" style="font-size: 1.2em;" title="Échéance proche">
+                                        <i class="fas fa-exclamation"></i>
+                                    </span>
+                                </div>
+                                {% else %}
+                                <!-- Niveau d'alerte vert - Échéances lointaines -->
+                                <div class="d-flex justify-content-center">
+                                    <span class="badge rounded-pill bg-success p-2" style="font-size: 1.2em;" title="Échéance lointaine">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                </div>
+                                {% endif %}
+                                
+                                {% endwith %}
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>Aucune planification de maintenance n'a été trouvée.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

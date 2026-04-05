@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+{% load humanize %}
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Nouvelle demande de carte carburant acceptée</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .important-note {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Nouvelle demande de carte carburant acceptée</h1>
+        </div>
+        
+        <div class="content">
+            <p>Bonjour {{ gestionnaire.prenom }} {{ gestionnaire.nom }},</p>
+            
+            <p>Une demande de carte carburant a été <strong>acceptée</strong> et nécessite votre intervention pour remettre la carte au chauffeur.</p>
+            
+            <div class="important-note">
+                <p><strong>Important :</strong> En tant que Gestionnaire Cartes, vous êtes chargé(e) de remettre la carte carburant au chauffeur qui a fait la demande.</p>
+            </div>
+            
+            <h3>Détails de la demande :</h3>
+            <table>
+                <tr>
+                    <th>Numéro de demande</th>
+                    <td>#{{ demande.id_demande }}</td>
+                </tr>
+                <tr>
+                    <th>Chauffeur</th>
+                    <td>{{ chauffeur.prenom }} {{ chauffeur.nom }}</td>
+                </tr>
+                <tr>
+                    <th>Date de la demande</th>
+                    <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>Date d'acceptation</th>
+                    <td>{{ demande.date_traitement|date:"d/m/Y H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>Service</th>
+                    <td>{{ service.nom_service }}</td>
+                </tr>
+                <tr>
+                    <th>Véhicule</th>
+                    <td>{{ vehicule.immatriculation }} - {{ vehicule.marque }} {{ vehicule.modele }}</td>
+                </tr>
+                <tr>
+                    <th>Dotation</th>
+                    <td>
+                        {% if demande.rechargement_ht %}
+                            <span style="background-color: #007bff; color: white; padding: 2px 6px; border-radius: 3px;">HT</span>
+                            {{ demande.rechargement_ht.achat_stock_carburant_ht.libelle }}
+                        {% elif demande.rechargement_ttc %}
+                            <span style="background-color: #28a745; color: white; padding: 2px 6px; border-radius: 3px;">TTC</span>
+                            {{ demande.rechargement_ttc.achat_carburant_ttc.libelle }}
+                        {% else %}
+                            Non spécifié
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Carte carburant à remettre</th>
+                    <td>
+                        {% if demande.rechargement_ht %}
+                            <strong>{{ demande.rechargement_ht.carte_carburant.numero_carte }}</strong>
+                        {% elif demande.rechargement_ttc %}
+                            <strong>{{ demande.rechargement_ttc.carte_carburant.numero_carte }}</strong>
+                        {% else %}
+                            Non spécifié
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Solde disponible</th>
+                    <td>
+                        {% if demande.rechargement_ht %}
+                            {{ demande.rechargement_ht.solde_restant|floatformat:0|intcomma }} FCFA
+                        {% elif demande.rechargement_ttc %}
+                            {{ demande.rechargement_ttc.solde_restant|floatformat:0|intcomma }} FCFA
+                        {% else %}
+                            0 FCFA
+                        {% endif %}
+                    </td>
+                </tr>
+                {% if demande.commentaire %}
+                <tr>
+                    <th>Commentaire</th>
+                    <td>{{ demande.commentaire }}</td>
+                </tr>
+                {% endif %}
+            </table>
+            
+            <p>Veuillez contacter le chauffeur pour lui remettre la carte carburant dès que possible.</p>
+            
+            <a href="http://{{ request.get_host }}{% url 'demande_carte_carburant_detail' demande.id_demande %}" class="btn">Voir les détails de la demande</a>
+        </div>
+        
+        <div class="footer">
+            <p>Ce message a été envoyé automatiquement par le système FMS. Merci de ne pas y répondre.</p>
+            <p>PNUD Côte d'Ivoire - Système de Gestion de Flotte</p>
+        </div>
+    </div>
+</body>
+</html>

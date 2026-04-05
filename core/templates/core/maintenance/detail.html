@@ -1,0 +1,93 @@
+{% extends 'core/detail_base.html' %}
+
+{% block title %}Détail de la maintenance{% endblock %}
+
+{% block page_title %}
+<h1 class="mb-4">Détail de la maintenance</h1>
+{% endblock %}
+
+{% block actions %}
+<div class="mb-4">
+    <div class="btn-group" role="group">
+        <a href="{% url 'maintenance_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+        </a>
+        <a href="{% url 'maintenance_update' maintenance.id %}" class="btn btn-primary">
+            <i class="fas fa-edit me-2"></i>Modifier
+        </a>
+        <a href="{% url 'maintenance_delete' maintenance.id %}" class="btn btn-danger">
+            <i class="fas fa-trash me-2"></i>Supprimer
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content_detail %}
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Informations générales</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>ID :</strong> {{ maintenance.id }}</p>
+                <p><strong>Type de maintenance :</strong> {{ maintenance.type_maintenance }}</p>
+                <p><strong>Véhicule :</strong> {{ maintenance.vehicule }}</p>
+                <p><strong>Service :</strong> {{ maintenance.service }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Date :</strong> {{ maintenance.date }}</p>
+                <p><strong>Kilométrage :</strong> {{ maintenance.km_vehicule }}</p>
+                <p><strong>Montant :</strong> {{ maintenance.format_montant }}</p>
+                <p><strong>Fournisseur :</strong> {{ maintenance.fournisseur }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Détail de la maintenance</h5>
+    </div>
+    <div class="card-body">
+        <p>{{ maintenance.detail|linebreaks }}</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Périodicité et alertes</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Périodicité kilométrique</h6>
+                <p><strong>Périodicité :</strong> {% if maintenance.periodicite_km %}{{ maintenance.periodicite_km }} km{% else %}Non définie{% endif %}</p>
+                <p><strong>Marge d'alerte :</strong> {% if maintenance.alerte_km %}{{ maintenance.alerte_km }} km{% else %}Non définie{% endif %}</p>
+            </div>
+            <div class="col-md-6">
+                <h6>Périodicité temporelle</h6>
+                <p><strong>Périodicité :</strong> {% if maintenance.periodicite_mois %}{{ maintenance.periodicite_mois }} mois{% else %}Non définie{% endif %}</p>
+                <p><strong>Marge d'alerte :</strong> {% if maintenance.alerte_mois %}{{ maintenance.alerte_mois }} mois{% else %}Non définie{% endif %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Facture</h5>
+    </div>
+    <div class="card-body">
+        {% if maintenance.facture %}
+        <p>
+            <a href="{{ maintenance.facture.url }}" class="btn btn-outline-primary" target="_blank">
+                <i class="fas fa-file-invoice me-2"></i>Télécharger la facture
+            </a>
+        </p>
+        {% else %}
+        <p class="text-muted">Aucune facture disponible.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'core/detail_base.html' %}
+{% block title %}Détail de la demande de course{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Détail de la demande de course</h2>
+    <table class="table">
+        <tr><th>Date de demande</th><td>{{ demande.date_demande|date:'d/m/Y H:i' }}</td></tr>
+        <tr><th>Service</th><td>{{ demande.id_service }}</td></tr>
+        <tr><th>Utilisateur</th><td>{{ demande.id_utilisateur }}</td></tr>
+        <tr><th>Lieu départ</th><td>{{ demande.lieu_depart }}</td></tr>
+        <tr><th>Lieu arrivée</th><td>{{ demande.lieu_arrivee }}</td></tr>
+        <tr><th>Date/heure prévue</th><td>{{ demande.date_heure_prevue|date:'d/m/Y H:i' }}</td></tr>
+        <tr><th>Date/heure retour</th><td>{{ demande.date_heure_fin_retour|date:'d/m/Y H:i' }}</td></tr>
+        <tr><th>Objet</th><td>{{ demande.objet }}</td></tr>
+        <tr><th>Statut</th><td>{{ demande.get_statut_display }}</td></tr>
+    </table>
+    <a href="{% url 'demandes_course_list' %}" class="btn btn-secondary">Retour</a>
+    {% if demande.id_utilisateur == user or user.is_staff %}
+        <a href="{% url 'demande_course_update' demande.pk %}" class="btn btn-warning">Modifier</a>
+        {# <a href="{% url 'demande_course_delete' demande.pk %}" class="btn btn-danger">Supprimer</a> #}
+    {% endif %}
+</div>
+{% endblock %}

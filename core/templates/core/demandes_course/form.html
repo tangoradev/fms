@@ -1,0 +1,38 @@
+{% extends 'core/form_base.html' %}
+{% block title %}{% if edit %}Modifier{% else %}Nouvelle{% endif %} demande de course{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if edit %}Modifier{% else %}Nouvelle{% endif %} demande de course</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">{% if edit %}Enregistrer{% else %}Créer{% endif %}</button>
+        <a href="{% url 'demandes_course_list' %}" class="btn btn-secondary">Annuler</a>
+    </form>
+</div>
+<script>
+// Auto-remplissage de la date/heure de fin retour +1h
+window.addEventListener('DOMContentLoaded', function() {
+    const debut = document.getElementById('id_date_heure_prevue');
+    const fin = document.getElementById('id_date_heure_fin_retour');
+    if (debut && fin) {
+        debut.addEventListener('change', function() {
+            if (debut.value) {
+                // Format attendu: yyyy-MM-ddTHH:mm
+                let d = new Date(debut.value);
+                if (!isNaN(d.getTime())) {
+                    d.setHours(d.getHours() + 1);
+                    // Format yyyy-MM-ddTHH:mm
+                    let y = d.getFullYear();
+                    let m = (d.getMonth()+1).toString().padStart(2, '0');
+                    let day = d.getDate().toString().padStart(2, '0');
+                    let h = d.getHours().toString().padStart(2, '0');
+                    let min = d.getMinutes().toString().padStart(2, '0');
+                    fin.value = `${y}-${m}-${day}T${h}:${min}`;
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

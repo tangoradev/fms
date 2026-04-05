@@ -1,0 +1,127 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Rapport mensuel de consommation - {{ dotation.libelle }}</h1>
+        <div>
+            <!-- Temporairement commenté car la route n'existe pas encore -->
+            <!-- <a href="{% url 'rapport_mensuel_consommation' %}?dotation_id={{ dotation.id_achat_stock_carburant_ht }}&mois={{ date_debut|date:'m' }}&annee={{ date_debut|date:'Y' }}&format=pdf" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+                <i class="fas fa-download fa-sm text-white-50"></i> Exporter en PDF
+            </a>
+            <!-- <a href="{% url 'rapport_mensuel_consommation' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Retour
+            </a> -->
+            <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <!-- Informations du rapport -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Informations générales</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Dotation:</strong> {{ dotation.libelle }}</p>
+                    <p><strong>Voucher:</strong> {{ dotation.voucher }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Période:</strong> {{ mois }}</p>
+                    <p><strong>Du {{ date_debut|date:"d/m/Y" }} au {{ date_fin|date:"d/m/Y" }}</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau du rapport -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Détails du rapport</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Carte</th>
+                            <th colspan="3">SOLDE D'OUVERTURE</th>
+                            <th colspan="3">CONSOMMATION</th>
+                            <th colspan="3">RECHARGEMENT</th>
+                            <th colspan="3">SOLDE DE CLÔTURE</th>
+                        </tr>
+                        <tr>
+                            <th>Volume (L)</th>
+                            <th>Montant TTC</th>
+                            <th>Montant HT</th>
+                            <th>Volume (L)</th>
+                            <th>Montant TTC</th>
+                            <th>Montant HT</th>
+                            <th>Volume (L)</th>
+                            <th>Montant TTC</th>
+                            <th>Montant HT</th>
+                            <th>Volume (L)</th>
+                            <th>Montant TTC</th>
+                            <th>Montant HT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for carte_data in cartes %}
+                        <tr>
+                            <td>{{ carte_data.carte.numero_carte }}</td>
+                            <td>{{ carte_data.solde_ouverture.volume|floatformat:2 }}</td>
+                            <td>{{ carte_data.solde_ouverture.montant_ttc|floatformat:2 }}</td>
+                            <td>{{ carte_data.solde_ouverture.montant_ht|floatformat:2 }}</td>
+                            <td>{{ carte_data.consommation.volume|floatformat:2 }}</td>
+                            <td>{{ carte_data.consommation.montant_ttc|floatformat:2 }}</td>
+                            <td>{{ carte_data.consommation.montant_ht|floatformat:2 }}</td>
+                            <td>{{ carte_data.rechargement.volume|floatformat:2 }}</td>
+                            <td>{{ carte_data.rechargement.montant_ttc|floatformat:2 }}</td>
+                            <td>{{ carte_data.rechargement.montant_ht|floatformat:2 }}</td>
+                            <td>{{ carte_data.solde_cloture.volume|floatformat:2 }}</td>
+                            <td>{{ carte_data.solde_cloture.montant_ttc|floatformat:2 }}</td>
+                            <td>{{ carte_data.solde_cloture.montant_ht|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="font-weight-bold">
+                            <td>TOTAL</td>
+                            <td>{{ totaux.solde_ouverture.volume|floatformat:2 }}</td>
+                            <td>{{ totaux.solde_ouverture.montant_ttc|floatformat:2 }}</td>
+                            <td>{{ totaux.solde_ouverture.montant_ht|floatformat:2 }}</td>
+                            <td>{{ totaux.consommation.volume|floatformat:2 }}</td>
+                            <td>{{ totaux.consommation.montant_ttc|floatformat:2 }}</td>
+                            <td>{{ totaux.consommation.montant_ht|floatformat:2 }}</td>
+                            <td>{{ totaux.rechargement.volume|floatformat:2 }}</td>
+                            <td>{{ totaux.rechargement.montant_ttc|floatformat:2 }}</td>
+                            <td>{{ totaux.rechargement.montant_ht|floatformat:2 }}</td>
+                            <td>{{ totaux.solde_cloture.volume|floatformat:2 }}</td>
+                            <td>{{ totaux.solde_cloture.montant_ttc|floatformat:2 }}</td>
+                            <td>{{ totaux.solde_cloture.montant_ht|floatformat:2 }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#dataTable').DataTable({
+            "paging": false,
+            "ordering": false,
+            "info": false,
+            "searching": false
+        });
+    });
+</script>
+{% endblock %}

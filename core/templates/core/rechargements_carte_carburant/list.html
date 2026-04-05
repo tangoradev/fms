@@ -1,0 +1,129 @@
+{% extends 'core/list_base.html' %}
+{% load humanize %}
+
+{% block title %}Rechargements de Cartes Carburant | FMS{% endblock %}
+
+{% block page_title %}Rechargements de Cartes Carburant{% endblock %}
+
+{% block page_subtitle %}Gestion des rechargements de cartes carburant{% endblock %}
+
+{% block add_button_url %}{% url 'rechargement_carte_carburant_create' %}{% endblock %}
+{% block add_button_text %}Ajouter un rechargement{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Rechargements HT (Achats de stock)</h3>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered table-striped datatable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Carte</th>
+                    <th>Dotation</th>
+                    <th>Type carburant</th>
+                    <th>Volume</th>
+                    <th>Montant TTC</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rechargement in rechargements_ht %}
+                <tr>
+                    <td>{{ rechargement.date_rechargement|date:"d/m/Y" }}</td>
+                    <td>
+                        <a href="{% url 'carte_carburant_detail' rechargement.carte_carburant.id_carte_carburant %}">
+                            {{ rechargement.carte_carburant.numero_carte }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url 'achat_carburant_ht_detail' rechargement.achat_stock_carburant_ht.id_achat_stock_carburant_ht %}">
+                            {{ rechargement.achat_stock_carburant_ht.libelle }}
+                        </a>
+                    </td>
+                    <td>{{ rechargement.achat_stock_carburant_ht.get_type_carburant_display }}</td>
+                    <td>{{ rechargement.volume }} L</td>
+                    <td>{{ rechargement.montant_ttc|intcomma }} FCFA</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'rechargement_carte_carburant_detail' rechargement.id_rechargement_ht %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'rechargement_carte_carburant_update' rechargement.id_rechargement_ht %}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'rechargement_carte_carburant_delete' rechargement.id_rechargement_ht %}" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">Aucun rechargement HT trouvé</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 class="card-title">Rechargements TTC (Achats directs)</h3>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered table-striped datatable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Carte</th>
+                    <th>Dotation</th>
+                    <th>Type carburant</th>
+                    <th>Volume</th>
+                    <th>Montant TTC</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rechargement in rechargements_ttc %}
+                <tr>
+                    <td>{{ rechargement.date_rechargement|date:"d/m/Y" }}</td>
+                    <td>
+                        <a href="{% url 'carte_carburant_detail' rechargement.carte_carburant.id_carte_carburant %}">
+                            {{ rechargement.carte_carburant.numero_carte }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url 'achat_carburant_ttc_detail' rechargement.achat_carburant_ttc.id_achat_carburant_ttc %}">
+                            {{ rechargement.achat_carburant_ttc.libelle }}
+                        </a>
+                    </td>
+                    <td>{{ rechargement.achat_carburant_ttc.get_type_carburant_display }}</td>
+                    <td>{{ rechargement.volume }} L</td>
+                    <td>{{ rechargement.montant_ttc|intcomma }} FCFA</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'rechargement_carte_carburant_detail' rechargement.id_rechargement_ttc %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'rechargement_carte_carburant_update' rechargement.id_rechargement_ttc %}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'rechargement_carte_carburant_delete' rechargement.id_rechargement_ttc %}" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">Aucun rechargement TTC trouvé</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

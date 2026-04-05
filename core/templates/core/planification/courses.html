@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load planification_extras %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- Colonne de gauche : calendrier -->
+    <div class="col-md-3">
+      <div class="card mb-3">
+        <div class="card-header">Calendrier</div>
+        <div class="card-body p-2">
+          <!-- Calendrier mensuel -->
+          <div id="mini-calendar"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Planification course</div>
+        <ul class="list-group list-group-flush">
+          {% for plan in planifications_sidebar %}
+            <li class="list-group-item">
+              <span class="fw-bold">{{ plan.date_heure|date:'d/m/Y H:i' }}</span><br>
+              <span>{{ plan.vehicule }}</span><br>
+              <span>{{ plan.utilisateur.nom_complet }}</span>
+              <span class="badge bg-primary ms-2">{{ plan.get_statut_display }}</span>
+              <a href="{% url 'planification_course_detail' plan.pk %}" class="float-end btn btn-sm btn-outline-primary">Détail</a>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-muted">Aucune planification à venir</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% if is_driver_principal %}
+      <a href="{% url 'planification_course_manuelle' %}" class="btn btn-success w-100 mt-3">Nouvelle Planification</a>
+      {% endif %}
+    </div>
+
+    <!-- Colonne centrale : calendrier journalier -->
+    <div class="col-md-9">
+      <div class="card">
+        <div class="card-header font-weight-bold bg-primary text-white">
+          Planification des courses du {{ date_selected|date:'d/m/Y' }}
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover table-sm mb-0 text-center align-middle" style="min-width:900px;">
+              <thead class="thead-light">
+                <tr>
+                  <th style="width:70px;">Heure</th>
+                  {% for vehicule in vehicules %}
+                    <th class="text-center">{{ vehicule.immatriculation }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for heure in heures %}
+                  <tr>
+                    <td class="font-weight-bold" style="background:#f8f9fa;">{{ heure|stringformat:"02d" }}:00</td>
+                    {% for vehicule in vehicules %}
+                      <td style="height:45px; vertical-align:middle;">
+                        {% get_plan planning_dict heure vehicule.pk as planification %}
+                        {% if planification %}
+                          <a href="{% url 'planification_course_detail' planification.pk %}" class="bg-primary text-white rounded px-2 py-1 mb-1 small shadow-sm d-inline-block text-decoration-none" style="font-size:1em; font-weight:bold;">
+                            {{ planification.utilisateur.nom_complet }}
+                          </a>
+                        {% endif %}
+                      </td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Optionnel : mini calendrier JS (ex: FullCalendar, ou simple calendrier Bootstrap) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+  flatpickr("#mini-calendar", {
+    inline: true,
+    defaultDate: "{{ date_selected|date:'Y-m-d' }}",
+    onChange: function(selectedDates, dateStr, instance) {
+      window.location.href = "?date=" + dateStr;
+    }
+  });
+</script>
+{% endblock %}

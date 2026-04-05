@@ -1,0 +1,217 @@
+{% extends 'core/form_base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{% if form.instance.id_achat_stock_carburant_ht %}Modifier{% else %}Ajouter{% endif %} un Achat de Carburant HT | FMS{% endblock %}
+
+{% block form_fields %}
+<div class="row">
+    <div class="col-md-6 mb-3">
+        {{ form.service.label_tag }}
+        {{ form.service|add_class:"form-control" }}
+        {% if form.service.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.service.errors }}
+            </div>
+        {% endif %}
+        {% if form.service.help_text %}
+            <small class="form-text text-muted">{{ form.service.help_text }}</small>
+        {% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+        {{ form.fournisseur.label_tag }}
+        {{ form.fournisseur|add_class:"form-control" }}
+        {% if form.fournisseur.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.fournisseur.errors }}
+            </div>
+        {% endif %}
+        {% if form.fournisseur.help_text %}
+            <small class="form-text text-muted">{{ form.fournisseur.help_text }}</small>
+        {% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+        {{ form.voucher.label_tag }}
+        {{ form.voucher|add_class:"form-control" }}
+        {% if form.voucher.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.voucher.errors }}
+            </div>
+        {% endif %}
+        {% if form.voucher.help_text %}
+            <small class="form-text text-muted">{{ form.voucher.help_text }}</small>
+        {% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+        {{ form.libelle.label_tag }}
+        {{ form.libelle|add_class:"form-control" }}
+        {% if form.libelle.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.libelle.errors }}
+            </div>
+        {% endif %}
+        {% if form.libelle.help_text %}
+            <small class="form-text text-muted">{{ form.libelle.help_text }}</small>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Détails financiers</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                {{ form.business_unit.label_tag }}
+                {{ form.business_unit|add_class:"form-control" }}
+                {% if form.business_unit.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.business_unit.errors }}
+                    </div>
+                {% endif %}
+                {% if form.business_unit.help_text %}
+                    <small class="form-text text-muted">{{ form.business_unit.help_text }}</small>
+                {% endif %}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.dept_id.label_tag }}
+                {{ form.dept_id|add_class:"form-control" }}
+                {% if form.dept_id.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.dept_id.errors }}
+                    </div>
+                {% endif %}
+                {% if form.dept_id.help_text %}
+                    <small class="form-text text-muted">{{ form.dept_id.help_text }}</small>
+                {% endif %}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.project_id.label_tag }}
+                {{ form.project_id|add_class:"form-control" }}
+                {% if form.project_id.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.project_id.errors }}
+                    </div>
+                {% endif %}
+                {% if form.project_id.help_text %}
+                    <small class="form-text text-muted">{{ form.project_id.help_text }}</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Détails du carburant</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                {{ form.date_achat.label_tag }}
+                {{ form.date_achat|add_class:"form-control" }}
+                {% if form.date_achat.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.date_achat.errors }}
+                    </div>
+                {% endif %}
+                {% if form.date_achat.help_text %}
+                    <small class="form-text text-muted">{{ form.date_achat.help_text }}</small>
+                {% endif %}
+            </div>
+            <div class="col-md-6 mb-3">
+                {{ form.type_carburant.label_tag }}
+                {{ form.type_carburant|add_class:"form-control" }}
+                {% if form.type_carburant.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.type_carburant.errors }}
+                    </div>
+                {% endif %}
+                {% if form.type_carburant.help_text %}
+                    <small class="form-text text-muted">{{ form.type_carburant.help_text }}</small>
+                {% endif %}
+            </div>
+            <div class="col-md-6 mb-3">
+                {{ form.volume.label_tag }}
+                {{ form.volume|add_class:"form-control" }}
+                {% if form.volume.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.volume.errors }}
+                    </div>
+                {% endif %}
+                {% if form.volume.help_text %}
+                    <small class="form-text text-muted">{{ form.volume.help_text }}</small>
+                {% endif %}
+            </div>
+            <div class="col-md-6 mb-3">
+                {{ form.montant_ht.label_tag }}
+                {{ form.montant_ht|add_class:"form-control" }}
+                {% if form.montant_ht.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.montant_ht.errors }}
+                    </div>
+                {% endif %}
+                {% if form.montant_ht.help_text %}
+                    <small class="form-text text-muted">{{ form.montant_ht.help_text }}</small>
+                {% endif %}
+            </div>
+            <div class="col-md-6 mb-3">
+                {{ form.montant_ttc.label_tag }}
+                {{ form.montant_ttc|add_class:"form-control" }}
+                {% if form.montant_ttc.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.montant_ttc.errors }}
+                    </div>
+                {% endif %}
+                {% if form.montant_ttc.help_text %}
+                    <small class="form-text text-muted">{{ form.montant_ttc.help_text }}</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 mb-3">
+        {{ form.document.label_tag }}
+        {{ form.document|add_class:"form-control" }}
+        {% if form.document.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.document.errors }}
+            </div>
+        {% endif %}
+        {% if form.document.help_text %}
+            <small class="form-text text-muted">{{ form.document.help_text }}</small>
+        {% endif %}
+        {% if form.instance.document %}
+        <div class="mt-2">
+            <a href="{{ form.instance.document.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-file-alt me-1"></i>Voir le document actuel
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Fonction pour calculer le montant HT
+    function calculerMontantHT() {
+        var volume = parseFloat($('#id_volume').val()) || 0;
+        var prixUnitaire = parseFloat($('#id_prix_unitaire_ht').val()) || 0;
+        var montantHT = volume * prixUnitaire;
+        
+        if (!isNaN(montantHT)) {
+            $('#id_montant_ht').val(Math.round(montantHT));
+        }
+    }
+
+    // Déclencher le calcul lorsque le volume ou le prix unitaire change
+    $('#id_volume, #id_prix_unitaire_ht').on('input', function() {
+        calculerMontantHT();
+    });
+});
+</script>
+{% endblock %}

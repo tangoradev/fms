@@ -1,0 +1,236 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">{{ title }}</h4>
+                    <div class="card-tools">
+                        <a href="{% url 'demandes_carte_carburant_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour à la liste
+                        </a>
+                        
+                        {% if 'Gestionnaire Carburant' in request.user.groupe.all|stringformat:"s" and demande.statut_demande == 'En attente' %}
+                        <a href="{% url 'demande_carte_carburant_traitement' demande.id_demande %}" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Traiter la demande
+                        </a>
+                        {% endif %}
+                        
+                        {% if demande.utilisateur_demandeur == request.user and demande.statut_demande == 'Acceptée' %}
+                        <a href="{% url 'demande_carte_carburant_cloture' demande.id_demande %}" class="btn btn-success">
+                            <i class="fas fa-flag-checkered"></i> Clôturer la demande
+                        </a>
+                        {% endif %}
+                        
+                        {% if demande.statut_demande in 'En attente,Rejetée' and demande.utilisateur_demandeur == request.user or 'Gestionnaire Carburant' in request.user.groupe.all|stringformat:"s" %}
+                        <a href="{% url 'demande_carte_carburant_delete' demande.id_demande %}" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h5>Statut de la demande</h5>
+                            <div class="mb-4">
+                                <!-- Débogage: Afficher la valeur brute -->
+                                <small class="text-muted">[{{ demande.statut_demande }}]</small><br>
+                                
+                                {% if demande.statut_demande == 'En attente' %}
+                                <span class="badge badge-warning" style="font-size: 1rem; padding: 8px 12px;">{{ demande.statut_demande }}</span>
+                                {% elif demande.statut_demande == 'Acceptée' %}
+                                <span class="badge badge-success" style="font-size: 1rem; padding: 8px 12px;">{{ demande.statut_demande }}</span>
+                                {% elif demande.statut_demande == 'Rejetée' %}
+                                <span class="badge badge-danger" style="font-size: 1rem; padding: 8px 12px;">{{ demande.statut_demande }}</span>
+                                {% elif demande.statut_demande == 'Close' %}
+                                <span class="badge badge-info" style="font-size: 1rem; padding: 8px 12px;">{{ demande.statut_demande }}</span>
+                                {% else %}
+                                <!-- Fallback pour tout autre statut non reconnu -->
+                                <span class="badge badge-secondary" style="font-size: 1rem; padding: 8px 12px;">{{ demande.statut_demande }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Phase 1 - Demande</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Date demande</th>
+                                    <td>{{ demande.date_demande|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Service</th>
+                                    <td>{{ demande.service }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Véhicule</th>
+                                    <td>{{ demande.vehicule }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Km actuel</th>
+                                    <td>{{ demande.vehicule.kilometrage }} km</td>
+                                </tr>
+                                <tr>
+                                    <th>Demandeur</th>
+                                    <td>{{ demande.utilisateur_demandeur }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Motif</th>
+                                    <td>{{ demande.motif_demande }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        {% if demande.statut_demande != 'En attente' %}
+                        <div class="col-md-6">
+                            <h5>Phase 2 - Traitement</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Date traitement</th>
+                                    <td>{{ demande.date_traitement|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Traitant</th>
+                                    <td>{{ demande.utilisateur_traitant }}</td>
+                                </tr>
+                                {% if demande.statut_demande == 'Acceptée' or demande.statut_demande == 'Close' %}
+                                <tr>
+                                    <th>Dotation</th>
+                                    <td>
+                                        {% if demande.rechargement_ht %}
+                                            <span class="badge bg-primary">HT</span>
+                                            {{ demande.rechargement_ht.achat_stock_carburant_ht.libelle }}
+                                        {% elif demande.rechargement_ttc %}
+                                            <span class="badge bg-success">TTC</span>
+                                            {{ demande.rechargement_ttc.achat_carburant_ttc.libelle }}
+                                        {% else %}
+                                            Non spécifiée
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Carte carburant</th>
+                                    <td>
+                                        {% if demande.rechargement_ht %}
+                                            {{ demande.rechargement_ht.carte_carburant }}
+                                        {% elif demande.rechargement_ttc %}
+                                            {{ demande.rechargement_ttc.carte_carburant }}
+                                        {% else %}
+                                            Non spécifiée
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Solde avant ravitaillement</th>
+                                    <td>
+                                        {% if demande.rechargement_ht %}
+                                            {{ demande.rechargement_ht.format_montant_ttc }}
+                                        {% elif demande.rechargement_ttc %}
+                                            {{ demande.rechargement_ttc.format_montant_ttc }}
+                                        {% else %}
+                                            {{ demande.format_ancien_solde_carte }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Commentaire</th>
+                                    <td>{{ demande.commentaire|default:"Aucun commentaire" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if demande.statut_demande == 'Close' %}
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <h5>Phase 3 - Clôture</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <th>Date ravitaillement</th>
+                                            <td>{{ demande.date_ravitaillement|date:"d/m/Y" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Kilométrage</th>
+                                            <td>{{ demande.km_vehicule }} km</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Prix unitaire TTC</th>
+                                            <td>{{ demande.prix_unitaire_ttc }} FCFA</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Volume</th>
+                                            <td>{{ demande.volume }} L</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <th>Montant TTC</th>
+                                            <td>{{ demande.format_montant_ttc }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Nouveau solde</th>
+                                            <td>{{ demande.format_nouveau_solde_carte }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Date clôture</th>
+                                            <td>{{ demande.date_cloture|date:"d/m/Y H:i" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Document</th>
+                                            <td>
+                                                {% if demande.document %}
+                                                <a href="{{ demande.document.url }}" target="_blank" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-file-download"></i> Télécharger
+                                                </a>
+                                                {% else %}
+                                                Aucun document
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Fiche de ravitaillement</th>
+                                            <td>
+                                                {% if demande.fiche_ravitaillement %}
+                                                <a href="{{ demande.get_fiche_ravitaillement_url }}" target="_blank" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-file-pdf"></i> Télécharger la fiche
+                                                </a>
+                                                {% if 'Gestionnaire Carburant' in request.user.groupe.all|stringformat:"s" or request.user.service.id_service == demande.service.id_service %}
+                                                <a href="{% url 'regenerer_fiche_ravitaillement' demande.id_demande %}" class="btn btn-sm btn-warning ml-2">
+                                                    <i class="fas fa-sync-alt"></i> Régénérer
+                                                </a>
+                                                {% endif %}
+                                                {% else %}
+                                                Aucune fiche disponible
+                                                {% if 'Gestionnaire Carburant' in request.user.groupe.all|stringformat:"s" or request.user.service.id_service == demande.service.id_service %}
+                                                <a href="{% url 'regenerer_fiche_ravitaillement' demande.id_demande %}" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-file-medical"></i> Générer la fiche
+                                                </a>
+                                                {% endif %}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

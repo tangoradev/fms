@@ -1,0 +1,46 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Supprimer la planification{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Confirmation de suppression</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Attention :</strong> Vous êtes sur le point de supprimer définitivement cette planification de maintenance.
+                    </div>
+                    
+                    <h5 class="mb-3">Détails de la planification :</h5>
+                    <ul class="list-group mb-4">
+                        <li class="list-group-item"><strong>Service :</strong> {{ planification.service.nom_service }}</li>
+                        <li class="list-group-item"><strong>Véhicule :</strong> {{ planification.vehicule }}</li>
+                        <li class="list-group-item"><strong>Type de maintenance :</strong> {{ planification.type_maintenance.libelle }}</li>
+                        <li class="list-group-item"><strong>Échéance kilométrique :</strong> {{ planification.prochaine_echeance_km }} km</li>
+                        {% if planification.prochaine_echeance_date %}
+                        <li class="list-group-item"><strong>Échéance de date :</strong> {{ planification.prochaine_echeance_date|date:"d/m/Y" }}</li>
+                        {% endif %}
+                    </ul>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'planification_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Annuler
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Confirmer la suppression
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

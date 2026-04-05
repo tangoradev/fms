@@ -1,0 +1,40 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow">
+    <div class="card-header bg-primary text-white">
+      <h4>Détail de la planification de course</h4>
+    </div>
+    <div class="card-body">
+      <dl class="row">
+        <dt class="col-sm-4">Chauffeur</dt>
+        <dd class="col-sm-8">{{ planification.utilisateur.nom_complet }}</dd>
+
+        <dt class="col-sm-4">Véhicule</dt>
+        <dd class="col-sm-8">{{ planification.vehicule }}</dd>
+
+        <dt class="col-sm-4">Date & Heure</dt>
+        <dd class="col-sm-8">{{ planification.date_heure|date:'d F Y H:i' }}</dd>
+
+        <dt class="col-sm-4">Lieu</dt>
+        <dd class="col-sm-8">{{ planification.lieu_arrivee }}</dd>
+
+        <dt class="col-sm-4">Statut</dt>
+        <dd class="col-sm-8">{{ planification.get_statut_display|default:planification.statut }}</dd>
+      </dl>
+      <p>
+        Utilisateur connecté : {{ request.user.pk }} / {{ request.user }}<br>
+        Chauffeur assigné : {{ planification.utilisateur.pk }} / {{ planification.utilisateur }}
+      </p>
+      {% if request.user.pk == planification.utilisateur.pk %}
+        <a href="{% url 'execution_course_create' planification.pk %}" class="btn btn-success mt-3">
+            Saisir l'exécution de la course
+        </a>
+      {% endif %}
+      <a href="{% url 'planification_courses' %}" class="btn btn-secondary mt-3">Retour à la planification</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

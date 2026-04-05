@@ -1,0 +1,333 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+
+{% block title %}
+    {% if is_ttc %}
+        Rechargements pour Achat TTC {{ achat_ttc.numero_bon }} | FMS
+    {% else %}
+        Rechargements pour Achat Stock {{ achat_stock.voucher }} | FMS
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Gestion des Rechargements de Cartes</h1>
+        {% if is_ttc %}
+            <a href="{% url 'achat_carburant_ttc_detail' achat_ttc.id_achat_carburant_ttc %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50 me-2"></i>Retour à l'achat
+            </a>
+        {% else %}
+            <a href="{% url 'achat_carburant_ht_detail' achat_stock.id_achat_stock_carburant_ht %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50 me-2"></i>Retour à l'achat
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <!-- Section Maître - Informations de l'achat stock ou TTC -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        {% if is_ttc %}
+                            Achat Carburant TTC
+                        {% else %}
+                            Achat Stock Carburant HT
+                        {% endif %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            {% if is_ttc %}
+                            <tr>
+                                <th class="bg-light" style="width: 40%">Numéro de bon</th>
+                                <td>{{ achat_ttc.numero_bon }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Date d'achat</th>
+                                <td>{{ achat_ttc.date_achat|date:"d/m/Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Fournisseur</th>
+                                <td>{{ achat_ttc.fournisseur }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Carte utilisée</th>
+                                <td>{{ achat_ttc.carte_carburant.numero_carte }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Type carburant</th>
+                                <td>{{ achat_ttc.get_type_carburant_display }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Volume total</th>
+                                <td>{{ achat_ttc.volume }} L</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Volume rechargé</th>
+                                <td>{{ volume_total_recharge|floatformat:2 }} L</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Volume restant</th>
+                                <td>{{ volume_restant|floatformat:2 }} L</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Montant total TTC</th>
+                                <td>{{ achat_ttc.montant_ttc|floatformat:0|intcomma }} FCFA</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Montant rechargé</th>
+                                <td>{{ montant_total_recharge|floatformat:0|intcomma }} FCFA</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Montant restant</th>
+                                <td>{{ montant_restant|floatformat:0|intcomma }} FCFA</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <th class="bg-light" style="width: 40%">Voucher</th>
+                                <td>{{ achat_stock.voucher }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Date d'achat</th>
+                                <td>{{ achat_stock.date_achat|date:"d/m/Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Libellé</th>
+                                <td>{{ achat_stock.libelle }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Fournisseur</th>
+                                <td>{{ achat_stock.fournisseur }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Type carburant</th>
+                                <td>{{ achat_stock.get_type_carburant_display }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Volume total</th>
+                                <td>{{ achat_stock.volume }} L</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Volume rechargé</th>
+                                <td>{{ volume_total_recharge|floatformat:2 }} L</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Volume restant</th>
+                                <td>{{ volume_restant|floatformat:2 }} L</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Montant total HT</th>
+                                <td>{{ achat_stock.montant_ht|floatformat:0|intcomma }} FCFA</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Montant rechargé</th>
+                                <td>{{ montant_total_recharge|floatformat:0|intcomma }} FCFA</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Montant restant</th>
+                                <td>{{ montant_restant|floatformat:0|intcomma }} FCFA</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire d'ajout de rechargement -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Ajouter un rechargement</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.date_rechargement.id_for_label }}" class="form-label">Date de rechargement</label>
+                            {{ form.date_rechargement }}
+                            {% if form.date_rechargement.errors %}
+                            <div class="invalid-feedback d-block">{{ form.date_rechargement.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.carte_carburant.id_for_label }}" class="form-label">Carte carburant</label>
+                            {{ form.carte_carburant }}
+                            {% if form.carte_carburant.errors %}
+                            <div class="invalid-feedback d-block">{{ form.carte_carburant.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.volume.id_for_label }}" class="form-label">Volume (litres)</label>
+                            {{ form.volume }}
+                            {% if form.volume.errors %}
+                            <div class="invalid-feedback d-block">{{ form.volume.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.prix_unitaire_ttc.id_for_label }}" class="form-label">Prix unitaire TTC (FCFA)</label>
+                            {{ form.prix_unitaire_ttc }}
+                            {% if form.prix_unitaire_ttc.errors %}
+                            <div class="invalid-feedback d-block">{{ form.prix_unitaire_ttc.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.montant_ttc.id_for_label }}" class="form-label">Montant TTC (FCFA)</label>
+                            {{ form.montant_ttc }}
+                            {% if form.montant_ttc.errors %}
+                            <div class="invalid-feedback d-block">{{ form.montant_ttc.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-plus-circle me-2"></i>Ajouter le rechargement
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Détails - Liste des rechargements -->
+        <div class="col-lg-8">
+            <!-- Section Solde Rechargements de cartes -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Solde Rechargements de cartes</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Carte</th>
+                                    <th>Dotation</th>
+                                    <th>Volume</th>
+                                    <th>Montant TTC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rechargement in rechargements %}
+                                <tr>
+                                    <td>{{ rechargement.carte_carburant.numero_carte }}</td>
+                                    <td>{% if is_ht %}{{ rechargement.achat_stock_carburant_ht.libelle }}{% else %}{{ rechargement.achat_carburant_ttc.libelle }}{% endif %}</td>
+                                    <td>{{ rechargement.volume_restant|default:rechargement.volume|floatformat:2 }} L</td>
+                                    <td>{{ rechargement.solde_restant|default:rechargement.montant_ttc|floatformat:0|intcomma }} FCFA</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Aucun rechargement de carte carburant enregistré pour cet achat.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Rechargements de cartes effectués</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Carte</th>
+                                    <th>Dotation</th>
+                                    <th>Volume</th>
+                                    <th>Montant TTC</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rechargement in rechargements %}
+                                <tr>
+                                    <td>{{ rechargement.date_rechargement|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'carte_carburant_detail' rechargement.carte_carburant.id_carte_carburant %}">
+                                            {{ rechargement.carte_carburant.numero_carte }}
+                                        </a>
+                                    </td>
+                                    <td>{% if is_ht %}{{ rechargement.achat_stock_carburant_ht.libelle }}{% else %}{{ rechargement.achat_carburant_ttc.libelle }}{% endif %}</td>
+                                    <td>{{ rechargement.volume }} L</td>
+                                    <td>{{ rechargement.montant_ttc|floatformat:0|intcomma }} FCFA</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            {% if is_ht %}
+                                            <a href="{% url 'rechargement_carte_carburant_detail' rechargement.id_rechargement_ht %}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'rechargement_carte_carburant_update' rechargement.id_rechargement_ht %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'rechargement_carte_carburant_delete' rechargement.id_rechargement_ht %}" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            {% elif is_ttc %}
+                                            <a href="{% url 'rechargement_carte_carburant_detail' rechargement.id_rechargement_ttc %}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'rechargement_carte_carburant_update' rechargement.id_rechargement_ttc %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'rechargement_carte_carburant_delete' rechargement.id_rechargement_ttc %}" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">Aucun rechargement de carte carburant enregistré pour cet achat.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="calculateur" 
+     data-volume-total="{% if is_ttc %}{{ achat_ttc.volume|default:0 }}{% else %}{{ achat_stock.volume|default:0 }}{% endif %}" 
+     data-montant-total="{% if is_ttc %}{{ achat_ttc.montant_ttc|default:0 }}{% else %}{{ achat_stock.montant_ht|default:0 }}{% endif %}"
+     data-volume-restant="{% if is_ttc %}{{ volume_restant|default:0 }}{% else %}{{ volume_restant|default:0 }}{% endif %}"
+     data-montant-restant="{% if is_ttc %}{{ montant_restant|default:0 }}{% else %}{{ montant_restant|default:0 }}{% endif %}">
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Récupérer les éléments du formulaire
+        const volumeInput = document.getElementById('id_volume');
+        const montantInput = document.getElementById('id_montant_ttc');
+        
+        // Récupérer les valeurs stockées dans les attributs data-*
+        const volumeRestant = parseFloat(document.getElementById('calculateur').dataset.volumeRestant);
+        const montantRestant = parseFloat(document.getElementById('calculateur').dataset.montantRestant);
+        
+        // Calculer le prix unitaire initial basé sur le montant restant et le volume restant
+        // Ex: 1575000/1800 = 875
+        const prixUnitaireInitial = volumeRestant > 0 ? montantRestant / volumeRestant : 0;
+        
+        // Ajouter un écouteur d'événements pour le changement de volume
+        volumeInput.addEventListener('change', function() {
+            const volumeValue = parseFloat(volumeInput.value) || 0;
+            
+            // Calculer le montant TTC = Volume * prix unitaire initial
+            // Ex: 900 * 875 = 787500
+            const montant = Math.round(volumeValue * prixUnitaireInitial);
+            montantInput.value = montant;
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,84 @@
+# ============================================================
+# COMMANDES POUR CORRIGER L'ERREUR 500 - ACHATS CARBURANT
+# ============================================================
+
+# MÉTHODE 1 : Transfert du fichier depuis votre PC
+# --------------------------------------------------
+
+# 1. Sur votre PC Windows (PowerShell), transférez le fichier corrigé :
+scp d:\fms\core\models.py c2501100c@web57.undpciv.org:/home/c2501100c/fms/core/models.py
+
+# 2. Puis connectez-vous au serveur et redémarrez :
+ssh c2501100c@web57.undpciv.org
+source /home/c2501100c/virtualenv/fms/3.11/bin/activate && cd /home/c2501100c/fms
+mkdir -p tmp && touch tmp/restart.txt
+
+
+# MÉTHODE 2 : Édition manuelle sur le serveur
+# ---------------------------------------------
+
+# 1. Connexion et navigation
+ssh c2501100c@web57.undpciv.org
+source /home/c2501100c/virtualenv/fms/3.11/bin/activate && cd /home/c2501100c/fms
+
+# 2. Sauvegarde
+cp core/models.py core/models.py.backup.$(date +%Y%m%d_%H%M%S)
+
+# 3. Édition du fichier
+nano core/models.py
+
+# 4. Chercher la classe Achat_Stock_Carburant_HT (vers ligne 282)
+#    Trouver la méthode format_solde_theorique() (vers ligne 353)
+#    Ajouter APRÈS cette méthode et AVANT save() :
+
+    def get_absolute_url(self):
+        """Retourne l'URL de la page de détail de l'achat carburant HT"""
+        from django.urls import reverse
+        return reverse('achat_carburant_ht_detail', args=[str(self.id_achat_stock_carburant_ht)])
+    
+    def get_update_url(self):
+        """Retourne l'URL de la page de modification de l'achat carburant HT"""
+        from django.urls import reverse
+        return reverse('achat_carburant_ht_update', args=[str(self.id_achat_stock_carburant_ht)])
+    
+    def get_delete_url(self):
+        """Retourne l'URL de la page de suppression de l'achat carburant HT"""
+        from django.urls import reverse
+        return reverse('achat_carburant_ht_delete', args=[str(self.id_achat_stock_carburant_ht)])
+
+# 5. Chercher la classe Achat_Carburant_TTC (vers ligne 385)
+#    Trouver la méthode format_solde_theorique() (vers ligne 445)
+#    Ajouter APRÈS cette méthode et AVANT save() :
+
+    def get_absolute_url(self):
+        """Retourne l'URL de la page de détail de l'achat carburant TTC"""
+        from django.urls import reverse
+        return reverse('achat_carburant_ttc_detail', args=[str(self.id_achat_carburant_ttc)])
+    
+    def get_update_url(self):
+        """Retourne l'URL de la page de modification de l'achat carburant TTC"""
+        from django.urls import reverse
+        return reverse('achat_carburant_ttc_update', args=[str(self.id_achat_carburant_ttc)])
+    
+    def get_delete_url(self):
+        """Retourne l'URL de la page de suppression de l'achat carburant TTC"""
+        from django.urls import reverse
+        return reverse('achat_carburant_ttc_delete', args=[str(self.id_achat_carburant_ttc)])
+
+# 6. Sauvegarder : Ctrl+X, Y, Entrée
+
+# 7. Redémarrer l'application
+mkdir -p tmp && touch tmp/restart.txt
+
+# 8. Vérifier les logs
+tail -30 debug.log
+
+
+# VÉRIFICATION APRÈS CORRECTION
+# ------------------------------
+
+# Tester les URLs suivantes dans le navigateur :
+# https://fms.undpciv.org/achats-carburant-ht/
+# https://fms.undpciv.org/achats-carburant-ttc/
+
+# Les pages devraient maintenant s'afficher sans erreur 500

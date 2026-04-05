@@ -1,0 +1,122 @@
+{% extends 'core/detail_base.html' %}
+{% load humanize %}
+
+{% block title %}Détail du Rechargement de Carte Carburant | FMS{% endblock %}
+
+{% block detail_content %}
+<div class="col-md-6">
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informations générales</h6>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <tr>
+                    <th class="bg-light" style="width: 40%">Date de rechargement</th>
+                    <td>{{ object.date_rechargement|date:"d/m/Y" }}</td>
+                </tr>
+                <tr>
+                    <th class="bg-light">Carte carburant</th>
+                    <td>
+                        <a href="{% url 'carte_carburant_detail' object.carte_carburant.id_carte_carburant %}">
+                            {{ object.carte_carburant.numero_carte }}
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="bg-light">Solde actuel de la carte</th>
+                    <td>{{ object.carte_carburant.format_solde }}</td>
+                </tr>
+                <tr>
+                    <th class="bg-light">Service</th>
+                    <td>{{ object.carte_carburant.service }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6">
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="fas fa-gas-pump me-2"></i>Détails du rechargement</h6>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                {% if object.achat_stock_carburant_ht %}
+                <tr>
+                    <th class="bg-light" style="width: 40%">Type de rechargement</th>
+                    <td><span class="badge bg-primary">HT (Achat de stock)</span></td>
+                </tr>
+                <tr>
+                    <th class="bg-light" style="width: 40%">Dotation</th>
+                    <td>
+                        <a href="{% url 'achat_carburant_ht_detail' object.achat_stock_carburant_ht.id_achat_stock_carburant_ht %}">
+                            {{ object.achat_stock_carburant_ht.libelle }}
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="bg-light">Type de carburant</th>
+                    <td>{{ object.achat_stock_carburant_ht.get_type_carburant_display }}</td>
+                </tr>
+                {% elif object.achat_carburant_ttc %}
+                <tr>
+                    <th class="bg-light" style="width: 40%">Type de rechargement</th>
+                    <td><span class="badge bg-success">TTC (Achat direct)</span></td>
+                </tr>
+                <tr>
+                    <th class="bg-light" style="width: 40%">Dotation</th>
+                    <td>
+                        <a href="{% url 'achat_carburant_ttc_detail' object.achat_carburant_ttc.id_achat_carburant_ttc %}">
+                            {{ object.achat_carburant_ttc.libelle }}
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="bg-light">Type de carburant</th>
+                    <td>{{ object.achat_carburant_ttc.get_type_carburant_display }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th class="bg-light">Volume</th>
+                    <td>{{ object.volume }} L</td>
+                </tr>
+                <tr>
+                    <th class="bg-light">Prix unitaire TTC</th>
+                    <td>{{ object.prix_unitaire_ttc|intcomma }} FCFA</td>
+                </tr>
+                <tr>
+                    <th class="bg-light">Montant TTC</th>
+                    <td>{{ object.montant_ttc|intcomma }} FCFA</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="col-12 mt-4">
+    <div class="d-flex justify-content-between">
+        <a href="{% url 'rechargements_carte_carburant_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+        </a>
+        <div>
+            {% if object.achat_stock_carburant_ht %}
+            <a href="{% url 'rechargement_carte_carburant_update' object.id_rechargement_ht %}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>Modifier
+            </a>
+            <a href="{% url 'rechargement_carte_carburant_delete' object.id_rechargement_ht %}" class="btn btn-danger ms-2">
+                <i class="fas fa-trash me-2"></i>Supprimer
+            </a>
+            {% elif object.achat_carburant_ttc %}
+            <a href="{% url 'rechargement_carte_carburant_update' object.id_rechargement_ttc %}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>Modifier
+            </a>
+            <a href="{% url 'rechargement_carte_carburant_delete' object.id_rechargement_ttc %}" class="btn btn-danger ms-2">
+                <i class="fas fa-trash me-2"></i>Supprimer
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

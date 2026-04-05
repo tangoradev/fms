@@ -1,0 +1,147 @@
+{% extends 'core/base.html' %}
+
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Suivi des dotations de carburant</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="dotationTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="ht-tab" data-bs-toggle="tab" href="#ht" role="tab" aria-controls="ht" aria-selected="true">Achats HT</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="ttc-tab" data-bs-toggle="tab" href="#ttc" role="tab" aria-controls="ttc" aria-selected="false">Achats TTC</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="dotationTabsContent">
+                        <div class="tab-pane fade show active" id="ht" role="tabpanel" aria-labelledby="ht-tab">
+                            <div class="table-responsive mt-3">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Libellé</th>
+                                            <th>Date d'achat</th>
+                                            <th>Service</th>
+                                            <th>Type</th>
+                                            <th>Volume (litres)</th>
+                                            <th>Montant TTC</th>
+                                            <th>Montant utilisé</th>
+                                            <th>Solde restant</th>
+                                            <th>Progression</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for achat in achats_ht %}
+                                        <tr>
+                                            <td>{{ achat.libelle }}</td>
+                                            <td>{{ achat.date_achat|date:"d/m/Y" }}</td>
+                                            <td>{{ achat.service.nom_service }}</td>
+                                            <td>{{ achat.get_type_carburant_display }}</td>
+                                            <td>{{ achat.volume }} litres</td>
+                                            <td>{{ achat.format_montant_ttc }}</td>
+                                            <td>{{ achat.montant_utilise|floatformat:0|intcomma }} FCFA</td>
+                                            <td>{{ achat.solde_restant|floatformat:0|intcomma }} FCFA</td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar {% if achat.pourcentage_utilisation < 50 %}bg-success{% elif achat.pourcentage_utilisation < 80 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                         role="progressbar" 
+                                                         style="width: {{ achat.pourcentage_utilisation }}%" 
+                                                         aria-valuenow="{{ achat.pourcentage_utilisation }}" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                        {{ achat.pourcentage_utilisation }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'dotation_detail' 'ht' achat.id_achat_stock_carburant_ht %}" class="btn btn-sm btn-info">Détails</a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="10" class="text-center">Aucune dotation HT trouvée</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="ttc" role="tabpanel" aria-labelledby="ttc-tab">
+                            <div class="table-responsive mt-3">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Libellé</th>
+                                            <th>Date d'achat</th>
+                                            <th>Service</th>
+                                            <th>Type</th>
+                                            <th>Volume (litres)</th>
+                                            <th>Montant TTC</th>
+                                            <th>Montant utilisé</th>
+                                            <th>Solde restant</th>
+                                            <th>Progression</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for achat in achats_ttc %}
+                                        <tr>
+                                            <td>{{ achat.libelle }}</td>
+                                            <td>{{ achat.date_achat|date:"d/m/Y" }}</td>
+                                            <td>{{ achat.service.nom_service }}</td>
+                                            <td>{{ achat.get_type_carburant_display }}</td>
+                                            <td>{{ achat.volume }} litres</td>
+                                            <td>{{ achat.format_montant_ttc }}</td>
+                                            <td>{{ achat.montant_utilise|floatformat:0|intcomma }} FCFA</td>
+                                            <td>{{ achat.solde_restant|floatformat:0|intcomma }} FCFA</td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar {% if achat.pourcentage_utilisation < 50 %}bg-success{% elif achat.pourcentage_utilisation < 80 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                         role="progressbar" 
+                                                         style="width: {{ achat.pourcentage_utilisation }}%" 
+                                                         aria-valuenow="{{ achat.pourcentage_utilisation }}" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                        {{ achat.pourcentage_utilisation }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'dotation_detail' 'ttc' achat.id_achat_carburant_ttc %}" class="btn btn-sm btn-info">Détails</a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="10" class="text-center">Aucune dotation TTC trouvée</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var hash = window.location.hash;
+        if (hash === '#ttc' || hash === '#ht') {
+            var tabTrigger = document.querySelector('a[href="' + hash + '"]');
+            if (tabTrigger) {
+                var tab = new bootstrap.Tab(tabTrigger);
+                tab.show();
+            }
+        }
+    });
+</script>
+{% endblock %}
