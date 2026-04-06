@@ -26746,3 +26746,11 @@ INFO 2025-10-20 20:46:55,075 autoreload Watching for file changes with StatReloa
 INFO 2025-10-20 20:46:55,075 autoreload Watching for file changes with StatReloader
 INFO 2026-04-05 17:18:10,549 autoreload Watching for file changes with StatReloader
 INFO 2026-04-05 17:18:10,549 autoreload Watching for file changes with StatReloader
+INFO 2026-04-05 18:56:10,291 autoreload Watching for file changes with StatReloader
+INFO 2026-04-05 18:56:10,291 autoreload Watching for file changes with StatReloader
+WARNING 2026-04-05 18:56:39,303 log Not Found: /service-worker.js
+WARNING 2026-04-05 18:56:39,303 log Not Found: /service-worker.js
+WARNING 2026-04-05 18:56:39,306 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-05 18:56:39,306 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+INFO 2026-04-06 18:26:13,026 autoreload Watching for file changes with StatReloader
+INFO 2026-04-06 18:26:13,026 autoreload Watching for file changes with StatReloader

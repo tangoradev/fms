@@ -135,3 +135,4 @@ Si le problème persiste après ces modifications, vérifiez:
 - Les logs de l'application Django (debug.log)
 - La configuration du pare-feu
 - Les permissions des fichiers
+- fin
