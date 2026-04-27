@@ -43,7 +43,8 @@ from .forms import (
     VehiculeForm, CarteCarburantCreateForm, FournisseurForm, AchatStockCarburantHTForm,
     AchatCarburantTTCForm, RechargementCarteCarburantHTForm, RechargementCarteCarburantTTCForm, DemandeCarteCarburantCreateForm,
     DemandeCarteCarburantTraitementForm, DemandeCarteCarburantClotureForm, CarteCarburantForm,
-    TypeMaintenanceForm, MaintenanceForm, PlanificationForm, DemandeCourseFormAmeliore, DemandeCourseTraitementForm
+    TypeMaintenanceForm, MaintenanceForm, PlanificationForm, DemandeCourseFormAmeliore, DemandeCourseTraitementForm,
+    PlanificationCourseForm
 )
 from .utils import notify_fuel_managers_new_request, notify_driver_request_processed, get_french_month_name, notify_driver_principal_course, notify_course_rejected, notify_course_affectation, generate_pdf_from_template
 import json
@@ -3622,174 +3623,214 @@ class MaintenanceReportExportExcel(LoginRequiredMixin, View):
         
         return response
 
+def _is_driver_principal(user):
+    return user.groupe.filter(nom_groupe="Driver Principal").exists()
+
+
+def _is_admin_like(user):
+    return user.is_staff or user.is_superuser or user.groupe.filter(nom_groupe='Administrateur').exists()
+
+
+def _user_service_ids(user):
+    return list(user.service.values_list('id_service', flat=True))
+
+
 @login_required
 def demandes_course_list(request):
-    """
-    Vue pour afficher la liste des demandes de course de l'utilisateur connecté.
-    """
-    demandes = DemandeCourse.objects.filter(id_service__in=user.service.values_list('id_service', flat=True))
-    return render(request, 'core/demandes_course/list.html', {'demandes': demandes})
+    user = request.user
+    services_ids = _user_service_ids(user)
+
+    if _is_admin_like(user):
+        demandes = DemandeCourse.objects.all()
+    else:
+        demandes = DemandeCourse.objects.filter(
+            Q(id_service__id_service__in=services_ids) |
+            Q(id_utilisateur=user) |
+            Q(id_auteur=user)
+        )
+
+    demandes = demandes.select_related('id_service', 'id_utilisateur', 'id_vehicule').order_by('-date_demande')
+    is_driver_principal = _is_driver_principal(user)
+    return render(request, 'core/demandes_course/list.html', {'demandes': demandes, 'is_driver_principal': is_driver_principal})
 
 
 @login_required
 def demande_course_create(request):
-    print("[PRINT] Début de la vue demande_course_create")
     if request.method == 'POST':
-        form = DemandeCourseFormAmeliore(request.POST)
+        form = DemandeCourseFormAmeliore(request.POST, user=request.user)
         if form.is_valid():
             demande = form.save(commit=False)
             demande.id_utilisateur = request.user
+            demande.id_auteur = request.user
             demande.statut = 'soumise'
             demande.save()
-            print(f"[TEST] Appel notify_driver_principal_course pour demande_id={demande.pk}, service={demande.id_service}")
-            notify_driver_principal_course(demande)
+
+            try:
+                notify_driver_principal_course(demande)
+            except Exception:
+                messages.warning(request, "Demande créée, mais la notification email n'a pas pu être envoyée.")
+
             messages.success(request, "Demande de course créée avec succès.")
             return redirect('demandes_course_list')
     else:
-        form = DemandeCourseFormAmeliore()
+        form = DemandeCourseFormAmeliore(user=request.user)
+
     return render(request, 'core/demandes_course/form_ameliore.html', {'form': form, 'demandeur': True})
+
 
 @login_required
 def demande_course_update(request, pk):
-    """
-    Vue pour modifier une demande de course existante.
-    """
     demande = get_object_or_404(DemandeCourse, pk=pk)
-    if demande.id_utilisateur != request.user and not request.user.is_staff:
+    owner = demande.id_auteur or demande.id_utilisateur
+
+    if owner != request.user and not _is_admin_like(request.user):
+        messages.error(request, "Vous n'êtes pas autorisé à modifier cette demande.")
         return redirect('demandes_course_list')
+
+    if demande.statut != 'soumise':
+        messages.warning(request, "Seules les demandes au statut 'soumise' peuvent être modifiées.")
+        return redirect('demande_course_detail', pk=demande.pk)
+
     if request.method == 'POST':
-        form = DemandeCourseForm(request.POST, instance=demande)
+        form = DemandeCourseFormAmeliore(request.POST, instance=demande, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, "Demande de course modifiée avec succès.")
             return redirect('demandes_course_list')
     else:
-        form = DemandeCourseForm(instance=demande)
-    return render(request, 'core/demandes_course/form.html', {'form': form, 'edit': True})
+        form = DemandeCourseFormAmeliore(instance=demande, user=request.user)
 
-@login_required
-def demande_course_create(request):
-    print("[PRINT] Début de la vue demande_course_create")
-    if request.method == 'POST':
-        form = DemandeCourseFormAmeliore(request.POST)
-        if form.is_valid():
-            demande = form.save(commit=False)
-            demande.id_utilisateur = request.user
-            demande.statut = 'soumise'
-            demande.save()
-            print(f"[TEST] Appel notify_driver_principal_course pour demande_id={demande.pk}, service={demande.id_service}")
-            notify_driver_principal_course(demande)
-            print("[DEBUG] Après appel notify_driver_principal_course")
-            messages.success(request, "Demande de course créée avec succès.")
-            return redirect('demandes_course_list')
-        else:
-            print("[DEBUG] Form non valide")
-    else:
-        print("[DEBUG] Requête GET")
-        form = DemandeCourseFormAmeliore()
-    return render(request, 'core/demandes_course/form_ameliore.html', {'form': form, 'demandeur': True})
+    return render(request, 'core/demandes_course/form_ameliore.html', {'form': form, 'edit': True})
+
 
 @login_required
 def demande_course_detail(request, pk):
-    """
-    Vue pour afficher les détails d'une demande de course.
-    """
     demande = get_object_or_404(DemandeCourse, pk=pk)
+    services_ids = _user_service_ids(request.user)
+    can_access = (
+        _is_admin_like(request.user) or
+        demande.id_service_id in services_ids or
+        demande.id_utilisateur == request.user or
+        demande.id_auteur == request.user
+    )
+
+    if not can_access:
+        messages.error(request, "Vous n'êtes pas autorisé à consulter cette demande.")
+        return redirect('demandes_course_list')
+
     return render(request, 'core/demandes_course/detail.html', {'demande': demande})
 
-def notify_driver_principal_course(demande):
-    service = demande.id_service
-    driver_principal = service.utilisateurs.filter(groupe__nom_groupe="Driver Principal").first()
-    if driver_principal and driver_principal.email:
-        sujet = "Nouvelle demande de course à traiter"
-        message = (
-            f"Bonjour {driver_principal.get_full_name()},\n\n"
-            f"Une nouvelle demande de course a été soumise par {demande.id_utilisateur.get_full_name()} "
-            f"pour le service {service}.\n\nMerci de vous connecter à FMS pour la traiter.\n\nCeci est un message automatique."
-        )
-        send_mail(
-            sujet,
-            message,
-            None,  # Utilise DEFAULT_FROM_EMAIL
-            [driver_principal.email],
-            fail_silently=False,
-        )
-@login_required
-def demandes_course_list(request):
-    user = request.user
-    demandes = DemandeCourse.objects.filter(id_service__in=user.service.values_list('id_service', flat=True))
-    is_driver_principal = request.user.groupe.filter(nom_groupe="Driver Principal").exists()
-    return render(request, 'core/demandes_course/list.html', {'demandes': demandes, 'is_driver_principal': is_driver_principal})
 
 @login_required
 def demande_course_traitement(request, pk):
     """
-    Vue pour traiter une demande de course (chauffeur principal).
+    Traite une demande de course (acceptation/rejet), et crée/met à jour la planification
+    lorsque la demande est acceptée.
     """
     demande = get_object_or_404(DemandeCourse, pk=pk)
-    # Vérifier que l'utilisateur est bien un Driver Principal du service
-    if not (request.user.groupe.filter(nom_groupe="Driver Principal").exists() and demande.id_service in request.user.service.all()):
+    services_ids = _user_service_ids(request.user)
+
+    if not (_is_admin_like(request.user) or (_is_driver_principal(request.user) and demande.id_service_id in services_ids)):
+        messages.error(request, "Vous n'êtes pas autorisé à traiter cette demande.")
         return redirect('demandes_course_list')
+
     if request.method == 'POST':
         form = DemandeCourseTraitementForm(request.POST, instance=demande, user=request.user)
         if form.is_valid():
-            demande = form.save(commit=False)
-            # Logique de notification...
-            demande.save()
-            from .models import PlanificationCourse
-            
-            if demande.statut == 'acceptée':
-                PlanificationCourse.objects.create(
-                    demande=demande,
-                    date_heure=demande.date_heure_prevue,
-                    utilisateur=demande.id_utilisateur,
-                    vehicule=demande.id_vehicule,
-                    statut='planifiée'
-                )
-            messages.success(request, "Demande de course traitée.")
+            selected_status = form.cleaned_data['statut']
+            selected_driver = form.cleaned_data.get('id_utilisateur')
+            selected_vehicule = form.cleaned_data.get('id_vehicule')
+
+            with transaction.atomic():
+                demande = form.save(commit=False)
+
+                if selected_status == 'rejetée':
+                    demande.statut = 'rejetée'
+                    demande.id_vehicule = None
+                    demande.save()
+
+                elif selected_status == 'acceptée':
+                    # Contrôles de conflit simples sur même créneau de départ
+                    vehicule_conflict = PlanificationCourse.objects.filter(
+                        vehicule=selected_vehicule,
+                        date_heure=demande.date_heure_prevue,
+                        statut='planifiée'
+                    ).exclude(demande=demande).exists()
+
+                    chauffeur_conflict = PlanificationCourse.objects.filter(
+                        utilisateur=selected_driver,
+                        date_heure=demande.date_heure_prevue,
+                        statut='planifiée'
+                    ).exclude(demande=demande).exists()
+
+                    if vehicule_conflict:
+                        form.add_error('id_vehicule', "Ce véhicule est déjà planifié sur ce créneau.")
+                        return render(request, 'core/demandes_course/traitement_form.html', {'form': form, 'demande': demande, 'traitement': True})
+
+                    if chauffeur_conflict:
+                        form.add_error('id_utilisateur', "Ce chauffeur est déjà planifié sur ce créneau.")
+                        return render(request, 'core/demandes_course/traitement_form.html', {'form': form, 'demande': demande, 'traitement': True})
+
+                    demande.statut = 'planifiée'
+                    demande.save()
+
+                    PlanificationCourse.objects.update_or_create(
+                        demande=demande,
+                        defaults={
+                            'date_heure': demande.date_heure_prevue,
+                            'utilisateur': demande.id_utilisateur,
+                            'vehicule': demande.id_vehicule,
+                            'statut': 'planifiée',
+                            'lieu_arrivee': demande.lieu_arrivee,
+                        }
+                    )
+
+            try:
+                if demande.statut == 'rejetée':
+                    notify_course_rejected(demande)
+                elif demande.statut == 'planifiée':
+                    notify_course_affectation(demande, demande.id_utilisateur, demande.id_vehicule)
+            except Exception:
+                messages.warning(request, "Traitement enregistré, mais la notification email n'a pas pu être envoyée.")
+
+            messages.success(request, "Demande de course traitée avec succès.")
             return redirect('demandes_course_list')
     else:
         form = DemandeCourseTraitementForm(instance=demande, user=request.user)
+
     return render(request, 'core/demandes_course/traitement_form.html', {'form': form, 'demande': demande, 'traitement': True})
 
-from django.contrib.auth.decorators import login_required
-from datetime import datetime
-from .models import PlanificationCourse, Vehicule
-
-# ... autres imports et code ...
-from collections import defaultdict
-
-from datetime import datetime
 
 @login_required
 def planification_courses_view(request):
     date_str = request.GET.get('date')
-    if date_str:
-        date_selected = datetime.strptime(date_str, '%Y-%m-%d').date()
-    else:
-        date_selected = datetime.now().date()
+    date_selected = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.now().date()
     heures = list(range(5, 23))
-    vehicules = Vehicule.objects.all().order_by('immatriculation')
 
-    # Toutes les planifications non échues (à venir), pour la colonne de gauche
-    planifications_a_venir = PlanificationCourse.objects.filter(date_heure__gte=datetime.now())
-
-    # Filtrage pour la colonne de gauche selon le groupe utilisateur
     user = request.user
-    user_groupes = list(user.groupe.values_list('nom_groupe', flat=True))
-    if 'Driver Principal' in user_groupes:
-        planifications_sidebar = planifications_a_venir.filter(utilisateur__service__in=user.service.all())
-    elif 'Driver' in user_groupes:
-        planifications_sidebar = planifications_a_venir.filter(utilisateur=user)
-    else:
-        planifications_sidebar = planifications_a_venir
+    services_ids = _user_service_ids(user)
+    is_driver_principal = _is_driver_principal(user)
 
-    # Planifications du jour sélectionné pour le tableau central
-    planifications_jour = planifications_a_venir.filter(date_heure__date=date_selected)
-    planning_dict = {}
-    for plan in planifications_jour:
-        key = (plan.date_heure.hour, plan.vehicule.pk)
-        planning_dict[key] = plan
+    queryset = PlanificationCourse.objects.select_related('utilisateur', 'vehicule', 'demande')
+    if _is_admin_like(user):
+        pass
+    elif is_driver_principal:
+        queryset = queryset.filter(utilisateur__service__id_service__in=services_ids)
+    elif user.groupe.filter(nom_groupe='Driver').exists():
+        queryset = queryset.filter(utilisateur=user)
+    else:
+        queryset = queryset.filter(utilisateur__service__id_service__in=services_ids)
+
+    # Véhicules affichés dans la grille
+    if _is_admin_like(user):
+        vehicules = Vehicule.objects.all().order_by('immatriculation')
+    else:
+        vehicules = Vehicule.objects.filter(service__id_service__in=services_ids).order_by('immatriculation')
+
+    planifications_sidebar = queryset.filter(date_heure__gte=timezone.now()).order_by('date_heure')
+    planifications_jour = queryset.filter(date_heure__date=date_selected)
+
+    planning_dict = {(plan.date_heure.hour, plan.vehicule.pk): plan for plan in planifications_jour}
 
     context = {
         'date_selected': date_selected,
@@ -3797,116 +3838,63 @@ def planification_courses_view(request):
         'vehicules': vehicules,
         'planning_dict': planning_dict,
         'planifications_sidebar': planifications_sidebar,
-        'is_driver_principal': request.user.groupe.filter(nom_groupe="Driver Principal").exists(),
+        'is_driver_principal': is_driver_principal,
     }
     return render(request, 'core/planification/courses.html', context)
 
+
 @login_required
 def planification_course_detail(request, pk):
-    """
-    Vue pour afficher les détails d'une planification de course.
-    """
-    planification = get_object_or_404(PlanificationCourse, pk=pk)
-    return render(request, 'core/planification/planification_detail.html', {'planification': planification})
+    planification = get_object_or_404(PlanificationCourse.objects.select_related('utilisateur', 'vehicule', 'demande'), pk=pk)
+    services_ids = _user_service_ids(request.user)
 
-@login_required
-def planification_courses_view(request):
-    date_str = request.GET.get('date')
-    if date_str:
-        date_selected = datetime.strptime(date_str, '%Y-%m-%d').date()
-    else:
-        date_selected = datetime.now().date()
-    heures = list(range(5, 23))
-    vehicules = Vehicule.objects.all().order_by('immatriculation')
-    planifications = PlanificationCourse.objects.filter(date_heure__date=date_selected)
+    can_access = (
+        _is_admin_like(request.user) or
+        planification.utilisateur == request.user or
+        planification.utilisateur.service.filter(id_service__in=services_ids).exists()
+    )
+    if not can_access:
+        messages.error(request, "Vous n'êtes pas autorisé à consulter cette planification.")
+        return redirect('planification_courses')
 
-    # Indexer les planifications par (heure, vehicule_id)
-    planning_dict = {}
-    for plan in planifications:
-        key = (plan.date_heure.hour, plan.vehicule.pk)
-        planning_dict[key] = plan
+    execution = planification.executions.order_by('-date_heure_debut').first()
+    return render(
+        request,
+        'core/planification/planification_detail.html',
+        {'planification': planification, 'execution': execution}
+    )
 
-    # Filtre les planifications pour la colonne de gauche selon le groupe utilisateur
-    user = request.user
-    user_groupes = list(user.groupe.values_list('nom_groupe', flat=True))
-    planifications_sidebar = PlanificationCourse.objects.filter(date_heure__gte=datetime.now()).order_by('date_heure')
-
-    # Filtrer par service si non admin
-    if not request.user.is_superuser and not request.user.groupe.filter(nom_groupe='Administrateur').exists():
-        # Récupérer les services de l'utilisateur (relation many-to-many)
-        user_services = request.user.service.all().values_list('id_service', flat=True)
-        planifications_sidebar = planifications_sidebar.filter(utilisateur__service__id_service__in=user_services)
-        # Récupérer uniquement les services de l'utilisateur
-        services = Service.objects.filter(id_service__in=user_services).order_by('nom_service')
-    else:
-        # Pour les administrateurs, tous les services
-        services = Service.objects.all().order_by('nom_service')
-
-    context = {
-            'date_selected': date_selected,
-            'heures': heures,
-            'vehicules': vehicules,
-            'planning_dict': planning_dict,
-            'planifications_sidebar': planifications_sidebar,
-            'is_driver_principal': request.user.groupe.filter(nom_groupe="Driver Principal").exists(),
-        }
-    return render(request, 'core/planification/courses.html', context)
-
-@login_required
-def planification_courses_view(request):
-    date_str = request.GET.get('date')
-    if date_str:
-        date_selected = datetime.strptime(date_str, '%Y-%m-%d').date()
-    else:
-        date_selected = datetime.now().date()
-    heures = list(range(5, 23))
-    vehicules = Vehicule.objects.all().order_by('immatriculation')
-    planifications = PlanificationCourse.objects.filter(date_heure__date=date_selected)
-
-    # Indexer les planifications par (heure, vehicule_id)
-    planning_dict = {}
-    for plan in planifications:
-        key = (plan.date_heure.hour, plan.vehicule.pk)
-        planning_dict[key] = plan
-
-    # Filtre les planifications pour la colonne de gauche selon le groupe utilisateur
-    user = request.user
-    user_groupes = list(user.groupe.values_list('nom_groupe', flat=True))
-    planifications_sidebar = PlanificationCourse.objects.filter(date_heure__gte=datetime.now()).order_by('date_heure')
-
-    # Filtrer par service si non admin
-    if not request.user.is_superuser and not request.user.groupe.filter(nom_groupe='Administrateur').exists():
-        # Récupérer les services de l'utilisateur (relation many-to-many)
-        user_services = request.user.service.all().values_list('id_service', flat=True)
-        planifications_sidebar = planifications_sidebar.filter(utilisateur__service__id_service__in=user_services)
-        # Récupérer uniquement les services de l'utilisateur
-        services = Service.objects.filter(id_service__in=user_services).order_by('nom_service')
-    else:
-        # Pour les administrateurs, tous les services
-        services = Service.objects.all().order_by('nom_service')
-
-    context = {
-            'date_selected': date_selected,
-            'heures': heures,
-            'vehicules': vehicules,
-            'planning_dict': planning_dict,
-            'planifications_sidebar': planifications_sidebar,
-            'is_driver_principal': request.user.groupe.filter(nom_groupe="Driver Principal").exists(),
-        }
-    return render(request, 'core/planification/courses.html', context)
-
-from django.contrib.auth.decorators import login_required
-from .forms import PlanificationForm
 
 @login_required
 def planification_course_manuelle(request):
+    if not (_is_driver_principal(request.user) or _is_admin_like(request.user)):
+        messages.error(request, "Vous n'êtes pas autorisé à créer une planification manuelle.")
+        return redirect('planification_courses')
+
     if request.method == 'POST':
-        form = PlanificationForm(request.POST)
+        form = PlanificationCourseForm(request.POST, user=request.user)
         if form.is_valid():
-            form.save()
-            return redirect('planification_courses_view')
+            with transaction.atomic():
+                planification = form.save(commit=False)
+                planification.demande = None
+                planification.statut = 'planifiée'
+
+                conflict = PlanificationCourse.objects.filter(
+                    vehicule=planification.vehicule,
+                    date_heure=planification.date_heure,
+                    statut='planifiée'
+                ).exists()
+                if conflict:
+                    form.add_error('vehicule', "Ce véhicule est déjà planifié à ce créneau.")
+                    return render(request, 'core/planification/planification_manuelle_form.html', {'form': form})
+
+                planification.save()
+
+            messages.success(request, "Planification manuelle créée avec succès.")
+            return redirect('planification_courses')
     else:
-        form = PlanificationForm()
+        form = PlanificationCourseForm(user=request.user)
+
     return render(request, 'core/planification/planification_manuelle_form.html', {'form': form})
 
 # --- END OF FILE ---

@@ -24,10 +24,28 @@
         <dt class="col-sm-4">Statut</dt>
         <dd class="col-sm-8">{{ planification.get_statut_display|default:planification.statut }}</dd>
       </dl>
-      <p>
-        Utilisateur connecté : {{ request.user.pk }} / {{ request.user }}<br>
-        Chauffeur assigné : {{ planification.utilisateur.pk }} / {{ planification.utilisateur }}
-      </p>
+
+      {% if execution %}
+      <hr>
+      <h5>Détails d'exécution</h5>
+      <dl class="row">
+        <dt class="col-sm-4">Début</dt>
+        <dd class="col-sm-8">{{ execution.date_heure_debut|date:'d F Y H:i' }}</dd>
+
+        <dt class="col-sm-4">Fin</dt>
+        <dd class="col-sm-8">{{ execution.date_heure_fin|date:'d F Y H:i' }}</dd>
+
+        <dt class="col-sm-4">Km début</dt>
+        <dd class="col-sm-8">{{ execution.kilometrage_debut }}</dd>
+
+        <dt class="col-sm-4">Km fin</dt>
+        <dd class="col-sm-8">{{ execution.kilometrage_fin }}</dd>
+
+        <dt class="col-sm-4">Remarques chauffeur</dt>
+        <dd class="col-sm-8">{{ execution.remarques_chauffeur|default:'-' }}</dd>
+      </dl>
+      {% endif %}
+
       {% if request.user.pk == planification.utilisateur.pk %}
         <a href="{% url 'execution_course_create' planification.pk %}" class="btn btn-success mt-3">
             Saisir l'exécution de la course

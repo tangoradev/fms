@@ -525,6 +525,7 @@ class DemandeCourseFormAmeliore(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self.fields['lieu_depart'].initial = 'Bureau'
         self.fields['id_service'].label = "Service demandeur"
@@ -533,6 +534,21 @@ class DemandeCourseFormAmeliore(forms.ModelForm):
         self.fields['date_heure_prevue'].label = "Date et heure prévue"
         self.fields['date_heure_fin_retour'].label = "Date et heure de retour"
         self.fields['objet'].label = "Objet de la course"
+        if user and not user.is_superuser:
+            self.fields['id_service'].queryset = user.service.all()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        date_heure_prevue = cleaned_data.get('date_heure_prevue')
+        date_heure_fin_retour = cleaned_data.get('date_heure_fin_retour')
+
+        if date_heure_prevue and date_heure_fin_retour and date_heure_fin_retour <= date_heure_prevue:
+            self.add_error('date_heure_fin_retour', "La date/heure de retour doit être postérieure à la date/heure prévue.")
+
+        if date_heure_prevue and date_heure_prevue < timezone.now():
+            self.add_error('date_heure_prevue', "La date/heure prévue ne peut pas être dans le passé.")
+
+        return cleaned_data
 
 
 class DemandeCourseTraitementForm(forms.ModelForm):
@@ -560,12 +576,23 @@ class DemandeCourseTraitementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        # Afficher tous les drivers de tous les services
-        self.fields['id_utilisateur'].queryset = Utilisateur.objects.filter(
-            models.Q(groupe__nom_groupe__icontains="Driver")
-        ).distinct()
-        # Afficher tous les véhicules disponibles de tous les services
-        self.fields['id_vehicule'].queryset = Vehicule.objects.filter(statut='Disponible')
+        service = self.instance.id_service if self.instance and self.instance.id_service else None
+
+        # Par défaut: limiter aux drivers et véhicules disponibles du service de la demande
+        drivers_qs = Utilisateur.objects.filter(models.Q(groupe__nom_groupe__icontains="Driver")).distinct()
+        vehicules_qs = Vehicule.objects.filter(statut='Disponible')
+
+        if service is not None:
+            drivers_qs = drivers_qs.filter(service=service)
+            vehicules_qs = vehicules_qs.filter(service=service)
+
+        # Fallback si aucun résultat strictement par service
+        if not drivers_qs.exists():
+            drivers_qs = Utilisateur.objects.filter(models.Q(groupe__nom_groupe__icontains="Driver")).distinct()
+
+        self.fields['id_utilisateur'].queryset = drivers_qs
+        self.fields['id_vehicule'].queryset = vehicules_qs
+
         # Justification non requise par défaut
         self.fields['justification_rejet'].required = False
     
@@ -685,13 +712,18 @@ class PlanificationCourseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        # Si création manuelle (pas de demande fournie), masquer le champ demande et statut, et forcer statut à non_planifiée
+        # Si création manuelle (pas de demande fournie), masquer le champ demande et statut.
         if not self.instance.demande_id:
             self.fields['demande'].widget = forms.HiddenInput()
             self.fields['statut'].widget = forms.HiddenInput()
-            self.initial['statut'] = 'non_planifiée'
+            self.initial['statut'] = 'planifiée'
         # Filtrer les utilisateurs pour n'afficher que ceux des groupes "Driver" ou "Driver Principal"
         self.fields['utilisateur'].queryset = Utilisateur.objects.filter(groupe__nom_groupe__startswith='Driver').distinct().order_by('nom_complet')
+
+        if user and not user.is_superuser:
+            user_services = user.service.all()
+            self.fields['vehicule'].queryset = Vehicule.objects.filter(service__in=user_services).order_by('immatriculation')
+            self.fields['utilisateur'].queryset = self.fields['utilisateur'].queryset.filter(service__in=user_services).distinct()
 
     class Meta:
         model = PlanificationCourse
@@ -722,3 +754,30 @@ class ExecutionCourseForm(forms.ModelForm):
             'kilometrage_fin': forms.NumberInput(attrs={'class': 'form-control'}),
             'remarques_chauffeur': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+    def __init__(self, *args, **kwargs):
+        self.planification = kwargs.pop('planification', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        date_heure_debut = cleaned_data.get('date_heure_debut')
+        date_heure_fin = cleaned_data.get('date_heure_fin')
+        kilometrage_debut = cleaned_data.get('kilometrage_debut')
+        kilometrage_fin = cleaned_data.get('kilometrage_fin')
+
+        if date_heure_debut and date_heure_fin and date_heure_fin <= date_heure_debut:
+            self.add_error('date_heure_fin', "La date/heure de fin doit être postérieure à la date/heure de début.")
+
+        if kilometrage_debut is not None and kilometrage_fin is not None and kilometrage_fin < kilometrage_debut:
+            self.add_error('kilometrage_fin', "Le kilométrage de fin ne peut pas être inférieur au kilométrage de début.")
+
+        if self.planification and self.planification.vehicule and kilometrage_debut is not None:
+            kilometrage_actuel = self.planification.vehicule.kilometrage
+            if kilometrage_debut < kilometrage_actuel:
+                self.add_error(
+                    'kilometrage_debut',
+                    f"Le kilométrage de début ({kilometrage_debut}) ne peut pas être inférieur au kilométrage actuel du véhicule ({kilometrage_actuel})."
+                )
+
+        return cleaned_data

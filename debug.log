@@ -26782,3 +26782,53 @@ WARNING 2026-04-06 18:27:36,717 log Not Found: /service-worker.js
 WARNING 2026-04-06 18:27:36,717 log Not Found: /service-worker.js
 WARNING 2026-04-06 18:27:36,719 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
 WARNING 2026-04-06 18:27:36,719 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+INFO 2026-04-27 18:55:55,300 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 18:55:55,300 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 18:56:13,081 basehttp "GET / HTTP/1.1" 200 4736
+INFO 2026-04-27 18:56:13,081 basehttp "GET / HTTP/1.1" 200 4736
+INFO 2026-04-27 18:56:13,293 basehttp "GET /static/core/css/style.css HTTP/1.1" 200 2901
+INFO 2026-04-27 18:56:13,293 basehttp "GET /static/core/css/style.css HTTP/1.1" 200 2901
+INFO 2026-04-27 18:56:13,306 basehttp "GET /static/core/img/logo.svg HTTP/1.1" 200 403855
+INFO 2026-04-27 18:56:13,306 basehttp "GET /static/core/img/logo.svg HTTP/1.1" 200 403855
+INFO 2026-04-27 18:56:13,365 basehttp "GET /static/core/js/main.js HTTP/1.1" 200 4152
+INFO 2026-04-27 18:56:13,365 basehttp "GET /static/core/js/main.js HTTP/1.1" 200 4152
+WARNING 2026-04-27 18:56:15,929 log Not Found: /favicon.ico
+WARNING 2026-04-27 18:56:15,929 log Not Found: /favicon.ico
+WARNING 2026-04-27 18:56:15,930 basehttp "GET /favicon.ico HTTP/1.1" 404 17226
+WARNING 2026-04-27 18:56:15,930 basehttp "GET /favicon.ico HTTP/1.1" 404 17226
+INFO 2026-04-27 18:56:17,248 basehttp "GET /login/ HTTP/1.1" 200 7633
+INFO 2026-04-27 18:56:17,248 basehttp "GET /login/ HTTP/1.1" 200 7633
+INFO 2026-04-27 18:56:17,356 basehttp "GET /static/core/img/car-fleet.svg HTTP/1.1" 200 7828
+INFO 2026-04-27 18:56:17,356 basehttp "GET /static/core/img/car-fleet.svg HTTP/1.1" 200 7828
+WARNING 2026-04-27 18:56:18,167 log Not Found: /service-worker.js
+WARNING 2026-04-27 18:56:18,167 log Not Found: /service-worker.js
+WARNING 2026-04-27 18:56:18,168 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 18:56:18,168 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 18:56:19,826 log Not Found: /service-worker.js
+WARNING 2026-04-27 18:56:19,826 log Not Found: /service-worker.js
+WARNING 2026-04-27 18:56:19,828 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 18:56:19,828 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+INFO 2026-04-27 18:56:34,141 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2026-04-27 18:56:34,141 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2026-04-27 18:56:34,201 basehttp "GET / HTTP/1.1" 200 18240
+INFO 2026-04-27 18:56:34,201 basehttp "GET / HTTP/1.1" 200 18240
+WARNING 2026-04-27 18:56:36,970 log Not Found: /service-worker.js
+WARNING 2026-04-27 18:56:36,970 log Not Found: /service-worker.js
+WARNING 2026-04-27 18:56:36,971 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 18:56:36,971 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 18:56:44,095 log Not Found: /service-worker.js
+WARNING 2026-04-27 18:56:44,095 log Not Found: /service-worker.js
+WARNING 2026-04-27 18:56:44,097 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 18:56:44,097 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+INFO 2026-04-27 19:14:12,253 autoreload D:\fms\core\forms.py changed, reloading.
+INFO 2026-04-27 19:14:12,253 autoreload D:\fms\core\forms.py changed, reloading.
+INFO 2026-04-27 19:14:14,113 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:14:14,113 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:15:56,732 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-27 19:15:56,732 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-27 19:15:58,774 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:15:58,774 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:16:13,100 autoreload D:\fms\core\views_execution_course.py changed, reloading.
+INFO 2026-04-27 19:16:13,100 autoreload D:\fms\core\views_execution_course.py changed, reloading.
+INFO 2026-04-27 19:16:14,437 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:16:14,437 autoreload Watching for file changes with StatReloader

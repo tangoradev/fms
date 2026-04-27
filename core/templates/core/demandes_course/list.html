@@ -33,7 +33,7 @@
                         <a href="{% url 'demande_course_update' demande.pk %}" class="btn btn-warning btn-sm">Modifier</a>
                         {# <a href="{% url 'demande_course_delete' demande.pk %}" class="btn btn-danger btn-sm">Supprimer</a> #}
                     {% endif %}
-                    {% if is_driver_principal %}
+                    {% if is_driver_principal and demande.statut == 'soumise' %}
                         <a href="{% url 'demande_course_traitement' demande.pk %}" class="btn btn-sm btn-warning">Traiter</a>
                     {% endif %}
                 </td>
