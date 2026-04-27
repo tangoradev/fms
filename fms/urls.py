@@ -43,9 +43,14 @@ urlpatterns = [
     
     # Routes pour les véhicules
     path('vehicules/', views.vehicules_list, name='vehicules_list'),
+    path('vehicules/dashboard/', views.fleet_dashboard, name='fleet_dashboard'),
     path('vehicules/ajouter/', views.vehicule_create, name='vehicule_create'),
     path('vehicules/<int:pk>/', views.vehicule_detail, name='vehicule_detail'),
     path('vehicules/<int:pk>/modifier/', views.vehicule_update, name='vehicule_update'),
+    path('vehicules/<int:pk>/statut/', views.vehicule_change_status, name='vehicule_change_status'),
+    path('vehicules/<int:pk>/affectations/ajouter/', views.vehicule_affectation_create, name='vehicule_affectation_create'),
+    path('vehicules/affectations/<int:affectation_id>/cloturer/', views.vehicule_affectation_close, name='vehicule_affectation_close'),
+    path('vehicules/<int:pk>/documents/ajouter/', views.vehicule_document_create, name='vehicule_document_create'),
     path('vehicules/<int:pk>/supprimer/', views.vehicule_delete, name='vehicule_delete'),
     
     # Routes pour les cartes carburant

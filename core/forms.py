@@ -5,7 +5,7 @@ from .models import (
     Fournisseur, Achat_Stock_Carburant_HT, Achat_Carburant_TTC, 
     Rechargement_Carte_Carburant_HT, Rechargement_Carte_Carburant_TTC,
     Demande_Carte_Carburant, TypeMaintenance, Maintenance, Planification, DemandeCourse, PlanificationCourse,
-    ExecutionCourse
+    ExecutionCourse, VehiculeAffectation, VehiculeDocument
 )
 from django.utils import timezone
 from django.db import models
@@ -92,6 +92,12 @@ class VehiculeForm(forms.ModelForm):
     """
     Formulaire pour la création et la modification des véhicules.
     """
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if user and not user.is_staff and not user.is_superuser:
+            self.fields['service'].queryset = user.service.all().order_by('nom_service')
+
     class Meta:
         model = Vehicule
         fields = [
@@ -120,6 +126,67 @@ class VehiculeForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+    def clean_kilometrage(self):
+        kilometrage = self.cleaned_data['kilometrage']
+        if kilometrage < 0:
+            raise forms.ValidationError("Le kilométrage ne peut pas être négatif.")
+        return kilometrage
+
+
+class VehiculeStatusForm(forms.ModelForm):
+    class Meta:
+        model = Vehicule
+        fields = ['statut']
+        widgets = {
+            'statut': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+
+class VehiculeAffectationForm(forms.ModelForm):
+    class Meta:
+        model = VehiculeAffectation
+        fields = ['service', 'chauffeur', 'date_debut', 'date_fin', 'note']
+        widgets = {
+            'service': forms.Select(attrs={'class': 'form-select'}),
+            'chauffeur': forms.Select(attrs={'class': 'form-select'}),
+            'date_debut': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'date_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'note': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        self.fields['chauffeur'].required = False
+
+        chauffeurs = Utilisateur.objects.filter(groupe__nom_groupe__icontains='Driver').distinct().order_by('nom_complet')
+        services = Service.objects.all().order_by('nom_service')
+
+        if user and not user.is_staff and not user.is_superuser:
+            services = user.service.all().order_by('nom_service')
+            chauffeurs = chauffeurs.filter(service__in=services).distinct()
+
+        self.fields['service'].queryset = services
+        self.fields['chauffeur'].queryset = chauffeurs
+
+
+class VehiculeDocumentForm(forms.ModelForm):
+    class Meta:
+        model = VehiculeDocument
+        fields = [
+            'type_document', 'reference', 'date_emission', 'date_expiration',
+            'fichier', 'commentaire', 'est_actif'
+        ]
+        widgets = {
+            'type_document': forms.Select(attrs={'class': 'form-select'}),
+            'reference': forms.TextInput(attrs={'class': 'form-control'}),
+            'date_emission': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'date_expiration': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'fichier': forms.FileInput(attrs={'class': 'form-control'}),
+            'commentaire': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'est_actif': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
 
 class CarteCarburantForm(forms.ModelForm):
@@ -302,12 +369,11 @@ class DemandeCarteCarburantCreateForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
-        # Filtrer les services selon l'utilisateur mais afficher tous les véhicules
+        # Filtrer services et véhicules au périmètre utilisateur
         if user:
             services = user.service.all()
             self.fields['service'].queryset = services
-            # Afficher tous les véhicules disponibles, indépendamment du service
-            self.fields['vehicule'].queryset = Vehicule.objects.all()
+            self.fields['vehicule'].queryset = Vehicule.objects.filter(service__in=services).order_by('immatriculation')
 
 
 class DemandeCarteCarburantTraitementForm(forms.ModelForm):
@@ -355,21 +421,11 @@ class DemandeCarteCarburantTraitementForm(forms.ModelForm):
             # Récupérer tous les rechargements HT disponibles
             rechargements_ht = Rechargement_Carte_Carburant_HT.objects.filter(
                 carte_carburant__service=self.service,
-                carte_carburant__statut='Disponible'
+                carte_carburant__statut='Disponible',
+                solde_restant__gt=0,
             ).select_related('achat_stock_carburant_ht', 'carte_carburant').order_by('-date_rechargement')
             
-            # Ajouter un message de débogage
-            print(f"Nombre de rechargements HT trouvés: {rechargements_ht.count()}")
-            
             for rechargement in rechargements_ht:
-                # Initialiser solde_restant s'il est None
-                if rechargement.solde_restant is None:
-                    rechargement.solde_restant = rechargement.montant_ttc
-                    rechargement.save()
-                
-                # Ajouter un message de débogage
-                print(f"Rechargement HT ID: {rechargement.id_rechargement_ht}, Carte: {rechargement.carte_carburant.numero_carte}, Solde restant: {rechargement.solde_restant}")
-                
                 # Vérifier que le rechargement a un solde suffisant
                 if rechargement.carte_carburant and rechargement.solde_restant and rechargement.solde_restant > 0:
                     dotation_choices.append(
@@ -380,21 +436,11 @@ class DemandeCarteCarburantTraitementForm(forms.ModelForm):
             # Récupérer tous les rechargements TTC disponibles
             rechargements_ttc = Rechargement_Carte_Carburant_TTC.objects.filter(
                 carte_carburant__service=self.service,
-                carte_carburant__statut='Disponible'
+                carte_carburant__statut='Disponible',
+                solde_restant__gt=0,
             ).select_related('achat_carburant_ttc', 'carte_carburant').order_by('-date_rechargement')
             
-            # Ajouter un message de débogage
-            print(f"Nombre de rechargements TTC trouvés: {rechargements_ttc.count()}")
-            
             for rechargement in rechargements_ttc:
-                # Initialiser solde_restant s'il est None
-                if rechargement.solde_restant is None:
-                    rechargement.solde_restant = rechargement.montant_ttc
-                    rechargement.save()
-                
-                # Ajouter un message de débogage
-                print(f"Rechargement TTC ID: {rechargement.id_rechargement_ttc}, Carte: {rechargement.carte_carburant.numero_carte}, Solde restant: {rechargement.solde_restant}")
-                
                 # Vérifier que le rechargement a un solde suffisant
                 if rechargement.carte_carburant and rechargement.solde_restant and rechargement.solde_restant > 0:
                     dotation_choices.append(
@@ -402,10 +448,21 @@ class DemandeCarteCarburantTraitementForm(forms.ModelForm):
                          f"{rechargement.achat_carburant_ttc.libelle} Carte {rechargement.carte_carburant.numero_carte} {rechargement.solde_restant:,} FCFA".replace(",", " "))
                     )
             
-            # Ajouter un message de débogage
-            print(f"Nombre total de choix de dotation: {len(dotation_choices)}")
-            
             self.fields['dotation'].choices = dotation_choices
+
+    def clean(self):
+        cleaned_data = super().clean()
+        statut = cleaned_data.get('statut_demande')
+        dotation = cleaned_data.get('dotation')
+        commentaire = (cleaned_data.get('commentaire') or '').strip()
+
+        if statut == 'Acceptée' and not dotation:
+            self.add_error('dotation', "La dotation est obligatoire pour accepter la demande.")
+
+        if statut == 'Rejetée' and not commentaire:
+            self.add_error('commentaire', "Un commentaire est obligatoire en cas de rejet.")
+
+        return cleaned_data
     
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -479,6 +536,11 @@ class DemandeCarteCarburantClotureForm(forms.ModelForm):
         if volume and prix_unitaire_ttc and not montant_ttc:
             montant_calcule = int(float(volume) * prix_unitaire_ttc)
             cleaned_data['montant_ttc'] = montant_calcule
+
+        if montant_ttc is not None and montant_ttc <= 0:
+            self.add_error('montant_ttc', "Le montant TTC doit être supérieur à zéro.")
+        if volume is not None and volume <= 0:
+            self.add_error('volume', "Le volume doit être supérieur à zéro.")
         
         return cleaned_data
     

@@ -11,10 +11,48 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <h1 class="card-title mb-0">Véhicules</h1>
-                        <a href="{% url 'vehicule_create' %}" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>Ajouter un véhicule
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'fleet_dashboard' %}" class="btn btn-outline-info">
+                                <i class="fas fa-chart-pie me-2"></i>Dashboard Flotte
+                            </a>
+                            <a href="{% url 'vehicule_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Ajouter un véhicule
+                            </a>
+                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="get" class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label">Statut</label>
+                            <select name="statut" class="form-select">
+                                <option value="">Tous</option>
+                                {% for value, label in statut_choices %}
+                                    <option value="{{ value }}" {% if statut_filter == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Service</label>
+                            <select name="service" class="form-select">
+                                <option value="">Tous</option>
+                                {% for service in services %}
+                                    <option value="{{ service.pk }}" {% if service_filter == service.pk|stringformat:'s' %}selected{% endif %}>{{ service.nom_service }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-outline-primary">Filtrer</button>
+                            <a href="{% url 'vehicules_list' %}" class="btn btn-outline-secondary">Réinitialiser</a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -64,6 +102,8 @@
                                         <span class="badge bg-primary">{{ vehicule.get_statut_display }}</span>
                                         {% elif vehicule.statut == 'En maintenance' %}
                                         <span class="badge bg-warning text-dark">{{ vehicule.get_statut_display }}</span>
+                                        {% elif vehicule.statut == 'Réformé' %}
+                                        <span class="badge bg-dark">{{ vehicule.get_statut_display }}</span>
                                         {% else %}
                                         <span class="badge bg-secondary">{{ vehicule.get_statut_display }}</span>
                                         {% endif %}
@@ -75,6 +115,9 @@
                                             </a>
                                             <a href="{% url 'vehicule_update' vehicule.pk %}" class="btn btn-sm btn-outline-warning" title="Modifier">
                                                 <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'vehicule_change_status' vehicule.pk %}" class="btn btn-sm btn-outline-secondary" title="Statut">
+                                                <i class="fas fa-toggle-on"></i>
                                             </a>
                                             <a href="{% url 'vehicule_delete' vehicule.pk %}" class="btn btn-sm btn-outline-danger" title="Supprimer">
                                                 <i class="fas fa-trash"></i>

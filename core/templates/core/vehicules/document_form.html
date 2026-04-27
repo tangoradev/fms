@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Ajouter document véhicule{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+  <div class="card shadow-sm">
+    <div class="card-header"><h5 class="mb-0">Ajouter un document de conformité - {{ vehicule.immatriculation }}</h5></div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-4"><label class="form-label">Type</label>{{ form.type_document }}</div>
+          <div class="col-md-4"><label class="form-label">Référence</label>{{ form.reference }}</div>
+          <div class="col-md-4 d-flex align-items-end"><div class="form-check">{{ form.est_actif }} <label class="form-check-label">Actif</label></div></div>
+          <div class="col-md-6"><label class="form-label">Date émission</label>{{ form.date_emission }}</div>
+          <div class="col-md-6"><label class="form-label">Date expiration</label>{{ form.date_expiration }}</div>
+          <div class="col-12"><label class="form-label">Fichier</label>{{ form.fichier }}</div>
+          <div class="col-12"><label class="form-label">Commentaire</label>{{ form.commentaire }}</div>
+        </div>
+        {% if form.errors %}<div class="text-danger small mt-2">{{ form.errors }}</div>{% endif %}
+        <div class="d-flex gap-2 justify-content-end mt-3">
+          <a href="{% url 'vehicule_detail' vehicule.pk %}" class="btn btn-outline-secondary">Annuler</a>
+          <button class="btn btn-primary" type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

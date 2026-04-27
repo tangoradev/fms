@@ -26832,3 +26832,179 @@ INFO 2026-04-27 19:16:13,100 autoreload D:\fms\core\views_execution_course.py ch
 INFO 2026-04-27 19:16:13,100 autoreload D:\fms\core\views_execution_course.py changed, reloading.
 INFO 2026-04-27 19:16:14,437 autoreload Watching for file changes with StatReloader
 INFO 2026-04-27 19:16:14,437 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:25:11,091 basehttp "GET / HTTP/1.1" 200 17928
+INFO 2026-04-27 19:25:11,091 basehttp "GET / HTTP/1.1" 200 17928
+WARNING 2026-04-27 19:25:16,018 log Not Found: /service-worker.js
+WARNING 2026-04-27 19:25:16,018 log Not Found: /service-worker.js
+WARNING 2026-04-27 19:25:16,019 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 19:25:16,019 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+INFO 2026-04-27 19:25:24,742 basehttp "GET /demandes-courses/ HTTP/1.1" 200 12636
+INFO 2026-04-27 19:25:24,742 basehttp "GET /demandes-courses/ HTTP/1.1" 200 12636
+WARNING 2026-04-27 19:25:27,543 log Not Found: /service-worker.js
+WARNING 2026-04-27 19:25:27,543 log Not Found: /service-worker.js
+WARNING 2026-04-27 19:25:27,546 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 19:25:27,546 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+INFO 2026-04-27 19:25:29,296 basehttp "GET /demandes-courses/ajouter/ HTTP/1.1" 200 14317
+INFO 2026-04-27 19:25:29,296 basehttp "GET /demandes-courses/ajouter/ HTTP/1.1" 200 14317
+WARNING 2026-04-27 19:25:32,073 log Not Found: /service-worker.js
+WARNING 2026-04-27 19:25:32,073 log Not Found: /service-worker.js
+WARNING 2026-04-27 19:25:32,075 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 19:25:32,075 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 19:25:42,059 log Not Found: /service-worker.js
+WARNING 2026-04-27 19:25:42,059 log Not Found: /service-worker.js
+WARNING 2026-04-27 19:25:42,061 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 19:25:42,061 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+INFO 2026-04-27 19:25:49,239 basehttp "GET /demandes-courses/ HTTP/1.1" 200 12636
+INFO 2026-04-27 19:25:49,239 basehttp "GET /demandes-courses/ HTTP/1.1" 200 12636
+WARNING 2026-04-27 19:25:51,927 log Not Found: /service-worker.js
+WARNING 2026-04-27 19:25:51,927 log Not Found: /service-worker.js
+WARNING 2026-04-27 19:25:51,929 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 19:25:51,929 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 19:26:20,319 log Not Found: /service-worker.js
+WARNING 2026-04-27 19:26:20,319 log Not Found: /service-worker.js
+WARNING 2026-04-27 19:26:20,320 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+WARNING 2026-04-27 19:26:20,320 basehttp "GET /service-worker.js HTTP/1.1" 404 17244
+INFO 2026-04-27 19:50:25,196 autoreload D:\fms\core\models.py changed, reloading.
+INFO 2026-04-27 19:50:25,196 autoreload D:\fms\core\models.py changed, reloading.
+INFO 2026-04-27 19:50:27,400 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:50:27,400 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:50:44,573 autoreload D:\fms\core\forms.py changed, reloading.
+INFO 2026-04-27 19:50:44,573 autoreload D:\fms\core\forms.py changed, reloading.
+INFO 2026-04-27 19:50:45,956 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:50:45,956 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:51:26,035 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-27 19:51:26,035 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-27 19:51:27,764 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:51:27,764 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:51:37,974 autoreload D:\fms\fms\urls.py changed, reloading.
+INFO 2026-04-27 19:51:37,974 autoreload D:\fms\fms\urls.py changed, reloading.
+INFO 2026-04-27 19:51:39,419 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 19:51:39,419 autoreload Watching for file changes with StatReloader
+ERROR 2026-04-27 22:11:43,404 log Internal Server Error: /carburant/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+  File "D:\fms\core\views.py", line 2603, in dashboard_carburant
+    return render(request, 'core/carburant/dashboard.html', {
+        'vehicules_stats': vehicules_stats,
+        'tendances': tendances_list,
+        'title': 'Tableau de bord Carburant'
+    })
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\test\utils.py", line 111, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\test\utils.py", line 111, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1059, in render
+    output = self.filter_expression.resolve(context)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 737, in resolve
+    new_obj = func(obj, *arg_vals)
+  File "D:\fms\core\templatetags\core_extras.py", line 11, in get_item
+    return dictionary.get(key, None)
+           ^^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'get'
+ERROR 2026-04-27 22:11:43,404 log Internal Server Error: /carburant/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+  File "D:\fms\core\views.py", line 2603, in dashboard_carburant
+    return render(request, 'core/carburant/dashboard.html', {
+        'vehicules_stats': vehicules_stats,
+        'tendances': tendances_list,
+        'title': 'Tableau de bord Carburant'
+    })
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\test\utils.py", line 111, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\test\utils.py", line 111, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1059, in render
+    output = self.filter_expression.resolve(context)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 737, in resolve
+    new_obj = func(obj, *arg_vals)
+  File "D:\fms\core\templatetags\core_extras.py", line 11, in get_item
+    return dictionary.get(key, None)
+           ^^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'get'

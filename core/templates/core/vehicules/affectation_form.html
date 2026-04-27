@@ -1,0 +1,48 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Nouvelle affectation véhicule{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+  <div class="card shadow-sm">
+    <div class="card-header"><h5 class="mb-0">Affecter le véhicule {{ vehicule.immatriculation }}</h5></div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Service</label>
+            {{ form.service }}
+            {% if form.service.errors %}<div class="text-danger small">{{ form.service.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Chauffeur principal</label>
+            {{ form.chauffeur }}
+            {% if form.chauffeur.errors %}<div class="text-danger small">{{ form.chauffeur.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Date début</label>
+            {{ form.date_debut }}
+            {% if form.date_debut.errors %}<div class="text-danger small">{{ form.date_debut.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Date fin (optionnelle)</label>
+            {{ form.date_fin }}
+            {% if form.date_fin.errors %}<div class="text-danger small">{{ form.date_fin.errors }}</div>{% endif %}
+          </div>
+          <div class="col-12">
+            <label class="form-label">Note</label>
+            {{ form.note }}
+            {% if form.note.errors %}<div class="text-danger small">{{ form.note.errors }}</div>{% endif %}
+          </div>
+        </div>
+        {% if form.non_field_errors %}<div class="text-danger small mt-2">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="d-flex gap-2 justify-content-end mt-3">
+          <a href="{% url 'vehicule_detail' vehicule.pk %}" class="btn btn-outline-secondary">Annuler</a>
+          <button class="btn btn-primary" type="submit">Affecter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

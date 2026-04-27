@@ -36,7 +36,8 @@ from .models import (
     Service, Groupe, Utilisateur, Vehicule, Carte_Carburant,
     Fournisseur, Achat_Stock_Carburant_HT, Achat_Carburant_TTC,
     Rechargement_Carte_Carburant_HT, Rechargement_Carte_Carburant_TTC, Demande_Carte_Carburant, EmailLog,
-    TypeMaintenance, Maintenance, Planification, DemandeCourse, PlanificationCourse
+    TypeMaintenance, Maintenance, Planification, DemandeCourse, PlanificationCourse,
+    VehiculeAffectation, VehiculeDocument
 )
 from .forms import (
     LoginForm, ServiceForm, GroupeForm, UtilisateurCreationForm, UtilisateurUpdateForm,
@@ -44,9 +45,10 @@ from .forms import (
     AchatCarburantTTCForm, RechargementCarteCarburantHTForm, RechargementCarteCarburantTTCForm, DemandeCarteCarburantCreateForm,
     DemandeCarteCarburantTraitementForm, DemandeCarteCarburantClotureForm, CarteCarburantForm,
     TypeMaintenanceForm, MaintenanceForm, PlanificationForm, DemandeCourseFormAmeliore, DemandeCourseTraitementForm,
-    PlanificationCourseForm
+    PlanificationCourseForm, VehiculeStatusForm, VehiculeAffectationForm, VehiculeDocumentForm
 )
 from .utils import notify_fuel_managers_new_request, notify_driver_request_processed, get_french_month_name, notify_driver_principal_course, notify_course_rejected, notify_course_affectation, generate_pdf_from_template
+from .services import build_releve_consommation_context, close_demande, reject_demande, validate_demande
 import json
 import calendar
 import xlsxwriter
@@ -370,18 +372,82 @@ def utilisateur_delete(request, pk):
 @login_required
 def vehicules_list(request):
     """
-    Vue pour la liste des véhicules
+    Vue pour la liste des véhicules.
+    Filtrage par service pour les utilisateurs non administrateurs.
     """
-    vehicules = Vehicule.objects.all().order_by('immatriculation')
-    return render(request, 'core/vehicules/list.html', {'vehicules': vehicules})
+    vehicules = Vehicule.objects.select_related('service').all().order_by('immatriculation')
+    if not request.user.is_staff and not request.user.is_superuser:
+        vehicules = vehicules.filter(service__in=request.user.service.all())
+
+    statut_filter = request.GET.get('statut')
+    service_filter = request.GET.get('service')
+    if statut_filter:
+        vehicules = vehicules.filter(statut=statut_filter)
+    if service_filter:
+        vehicules = vehicules.filter(service_id=service_filter)
+
+    services = Service.objects.all().order_by('nom_service') if request.user.is_staff or request.user.is_superuser else request.user.service.all().order_by('nom_service')
+
+    context = {
+        'vehicules': vehicules,
+        'services': services,
+        'statut_filter': statut_filter,
+        'service_filter': service_filter,
+        'statut_choices': Vehicule.STATUT_CHOICES,
+    }
+    return render(request, 'core/vehicules/list.html', context)
+
+
+@login_required
+def fleet_dashboard(request):
+    vehicules_qs = Vehicule.objects.all()
+    if not request.user.is_staff and not request.user.is_superuser:
+        vehicules_qs = vehicules_qs.filter(service__in=request.user.service.all())
+
+    total = vehicules_qs.count()
+    dispo = vehicules_qs.filter(statut='Disponible').count()
+    maintenance = vehicules_qs.filter(statut='En maintenance').count()
+    indispo = vehicules_qs.filter(statut__in=['Non Disponible', 'Réformé']).count()
+
+    docs = VehiculeDocument.objects.filter(est_actif=True, vehicule__in=vehicules_qs)
+    today = timezone.now().date()
+    docs_expires = docs.filter(date_expiration__lt=today).select_related('vehicule')
+    docs_soon = docs.filter(date_expiration__gte=today, date_expiration__lte=today + timedelta(days=30)).select_related('vehicule')
+
+    context = {
+        'total_vehicules': total,
+        'vehicules_disponibles': dispo,
+        'vehicules_maintenance': maintenance,
+        'vehicules_indisponibles': indispo,
+        'taux_disponibilite': round((dispo / total) * 100, 1) if total else 0,
+        'documents_expired': docs_expires[:15],
+        'documents_soon': docs_soon[:15],
+        'recent_affectations': VehiculeAffectation.objects.select_related('vehicule', 'service', 'chauffeur').order_by('-date_creation')[:10],
+    }
+    return render(request, 'core/vehicules/dashboard.html', context)
 
 @login_required
 def vehicule_detail(request, pk):
     """
     Vue pour les détails d'un véhicule
     """
-    vehicule = get_object_or_404(Vehicule, pk=pk)
-    return render(request, 'core/vehicules/detail.html', {'object': vehicule})
+    vehicule = get_object_or_404(Vehicule.objects.select_related('service'), pk=pk)
+    if not request.user.is_staff and not request.user.is_superuser and vehicule.service not in request.user.service.all():
+        messages.error(request, "Vous n'êtes pas autorisé à consulter ce véhicule.")
+        return redirect('vehicules_list')
+
+    affectations = vehicule.affectations.select_related('service', 'chauffeur').all()[:20]
+    documents = vehicule.documents.filter(est_actif=True).order_by('date_expiration', '-date_creation')
+    maintenances = vehicule.maintenances.select_related('type_maintenance').order_by('-date')[:10]
+    cartes = vehicule.cartes_carburant.all()
+
+    return render(request, 'core/vehicules/detail.html', {
+        'object': vehicule,
+        'affectations': affectations,
+        'documents': documents,
+        'maintenances': maintenances,
+        'cartes': cartes,
+    })
 
 @login_required
 def vehicule_create(request):
@@ -389,13 +455,13 @@ def vehicule_create(request):
     Vue pour la création d'un véhicule
     """
     if request.method == 'POST':
-        form = VehiculeForm(request.POST, request.FILES)
+        form = VehiculeForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             vehicule = form.save()
             messages.success(request, f'Le véhicule {vehicule.immatriculation} a été créé avec succès.')
             return redirect('vehicules_list')
     else:
-        form = VehiculeForm()
+        form = VehiculeForm(user=request.user)
     
     return render(request, 'core/vehicules/form.html', {
         'form': form,
@@ -409,15 +475,18 @@ def vehicule_update(request, pk):
     Vue pour la modification d'un véhicule
     """
     vehicule = get_object_or_404(Vehicule, pk=pk)
+    if not request.user.is_staff and not request.user.is_superuser and vehicule.service not in request.user.service.all():
+        messages.error(request, "Vous n'êtes pas autorisé à modifier ce véhicule.")
+        return redirect('vehicules_list')
     
     if request.method == 'POST':
-        form = VehiculeForm(request.POST, request.FILES, instance=vehicule)
+        form = VehiculeForm(request.POST, request.FILES, instance=vehicule, user=request.user)
         if form.is_valid():
             vehicule = form.save()
             messages.success(request, f'Le véhicule {vehicule.immatriculation} a été modifié avec succès.')
             return redirect('vehicule_detail', pk=vehicule.pk)
     else:
-        form = VehiculeForm(instance=vehicule)
+        form = VehiculeForm(instance=vehicule, user=request.user)
     
     return render(request, 'core/vehicules/form.html', {
         'form': form,
@@ -432,6 +501,10 @@ def vehicule_delete(request, pk):
     Vue pour la suppression d'un véhicule
     """
     vehicule = get_object_or_404(Vehicule, pk=pk)
+
+    if Maintenance.objects.filter(vehicule=vehicule).exists() or PlanificationCourse.objects.filter(vehicule=vehicule).exists():
+        messages.error(request, "Suppression impossible: ce véhicule est référencé dans des maintenances ou des courses. Changez son statut (ex: Réformé).")
+        return redirect('vehicule_detail', pk=vehicule.pk)
     
     if request.method == 'POST':
         immatriculation = vehicule.immatriculation
@@ -441,13 +514,97 @@ def vehicule_delete(request, pk):
     
     return render(request, 'core/vehicules/delete.html', {'vehicule': vehicule})
 
+
+@login_required
+def vehicule_change_status(request, pk):
+    vehicule = get_object_or_404(Vehicule, pk=pk)
+    if not request.user.is_staff and not request.user.is_superuser and vehicule.service not in request.user.service.all():
+        messages.error(request, "Vous n'êtes pas autorisé à modifier le statut de ce véhicule.")
+        return redirect('vehicules_list')
+
+    if request.method == 'POST':
+        form = VehiculeStatusForm(request.POST, instance=vehicule)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Statut du véhicule {vehicule.immatriculation} mis à jour.")
+            return redirect('vehicule_detail', pk=vehicule.pk)
+    else:
+        form = VehiculeStatusForm(instance=vehicule)
+
+    return render(request, 'core/vehicules/status_form.html', {'form': form, 'vehicule': vehicule})
+
+
+@login_required
+def vehicule_affectation_create(request, pk):
+    vehicule = get_object_or_404(Vehicule, pk=pk)
+    if not request.user.is_staff and not request.user.is_superuser and vehicule.service not in request.user.service.all():
+        messages.error(request, "Vous n'êtes pas autorisé à affecter ce véhicule.")
+        return redirect('vehicules_list')
+
+    if request.method == 'POST':
+        form = VehiculeAffectationForm(request.POST, user=request.user)
+        if form.is_valid():
+            affectation = form.save(commit=False)
+            affectation.vehicule = vehicule
+            affectation.cree_par = request.user
+            affectation.save()
+            vehicule.service = affectation.service
+            if vehicule.statut == 'Non Disponible':
+                vehicule.statut = 'Disponible'
+            vehicule.save(update_fields=['service', 'statut'])
+            messages.success(request, "Affectation enregistrée avec succès.")
+            return redirect('vehicule_detail', pk=vehicule.pk)
+    else:
+        form = VehiculeAffectationForm(user=request.user, initial={'service': vehicule.service})
+
+    return render(request, 'core/vehicules/affectation_form.html', {'form': form, 'vehicule': vehicule})
+
+
+@login_required
+def vehicule_affectation_close(request, affectation_id):
+    affectation = get_object_or_404(VehiculeAffectation, pk=affectation_id)
+    vehicule = affectation.vehicule
+    if not request.user.is_staff and not request.user.is_superuser and vehicule.service not in request.user.service.all():
+        messages.error(request, "Vous n'êtes pas autorisé à clôturer cette affectation.")
+        return redirect('vehicules_list')
+
+    if affectation.date_fin is None:
+        affectation.date_fin = timezone.now().date()
+        affectation.est_active = False
+        affectation.save(update_fields=['date_fin', 'est_active'])
+        messages.success(request, "Affectation clôturée.")
+    return redirect('vehicule_detail', pk=vehicule.pk)
+
+
+@login_required
+def vehicule_document_create(request, pk):
+    vehicule = get_object_or_404(Vehicule, pk=pk)
+    if not request.user.is_staff and not request.user.is_superuser and vehicule.service not in request.user.service.all():
+        messages.error(request, "Vous n'êtes pas autorisé à gérer les documents de ce véhicule.")
+        return redirect('vehicules_list')
+
+    if request.method == 'POST':
+        form = VehiculeDocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            document = form.save(commit=False)
+            document.vehicule = vehicule
+            document.save()
+            messages.success(request, "Document véhicule ajouté avec succès.")
+            return redirect('vehicule_detail', pk=vehicule.pk)
+    else:
+        form = VehiculeDocumentForm()
+
+    return render(request, 'core/vehicules/document_form.html', {'form': form, 'vehicule': vehicule})
+
 # Vues pour les cartes carburant
 @login_required
 def cartes_carburant_list(request):
     """
     Vue pour la liste des cartes carburant
     """
-    cartes = Carte_Carburant.objects.all().order_by('numero_carte')
+    cartes = Carte_Carburant.objects.select_related('service', 'vehicule').all().order_by('numero_carte')
+    if not request.user.is_staff and not request.user.is_superuser:
+        cartes = cartes.filter(service__in=request.user.service.all())
     context = {
         'object_list': cartes,
         'title': 'Cartes Carburant',
@@ -462,7 +619,15 @@ def carte_carburant_detail(request, pk):
     Vue pour les détails d'une carte carburant
     """
     carte = get_object_or_404(Carte_Carburant, pk=pk)
-    rechargements = carte.rechargements.all().order_by('-date_rechargement')
+    if not request.user.is_staff and not request.user.is_superuser and carte.service not in request.user.service.all():
+        messages.error(request, "Vous n'êtes pas autorisé à consulter cette carte.")
+        return redirect('cartes_carburant_list')
+
+    rechargements_ht = carte.rechargements_ht.select_related('achat_stock_carburant_ht').order_by('-date_rechargement')
+    rechargements_ttc = carte.rechargements_ttc.select_related('achat_carburant_ttc').order_by('-date_rechargement')
+    rechargements = list(rechargements_ht) + list(rechargements_ttc)
+    rechargements.sort(key=lambda r: r.date_rechargement, reverse=True)
+
     return render(request, 'core/cartes_carburant/detail.html', {
         'carte': carte,
         'rechargements': rechargements
@@ -833,12 +998,8 @@ def rechargement_carte_carburant_create(request):
                 messages.error(request, "Cette carte a déjà été rechargée avec ce stock de carburant.")
             else:
                 try:
-                    rechargement.save()
-                    
-                    # Mettre à jour le solde de la carte
-                    carte = rechargement.carte_carburant
-                    carte.solde += rechargement.montant_ttc
-                    carte.save()
+                    with transaction.atomic():
+                        rechargement.save()
                     
                     messages.success(request, f'Le rechargement de carte a été créé avec succès.')
                     return redirect('rechargements_carte_carburant_list')
@@ -867,7 +1028,6 @@ def rechargement_carte_carburant_update(request, pk):
     Vue pour la modification d'un rechargement de carte carburant
     """
     rechargement = get_object_or_404(Rechargement_Carte_Carburant_HT, pk=pk)
-    ancien_montant = rechargement.montant_ttc
     ancienne_carte = rechargement.carte_carburant
     ancien_achat_stock = rechargement.achat_stock_carburant_ht
     
@@ -900,18 +1060,9 @@ def rechargement_carte_carburant_update(request, pk):
                 # Mettre à jour l'achat de stock
                 rechargement.achat_stock_carburant_ht = nouvel_achat_stock
                 
-                # Enregistrer le rechargement
-                rechargement = form.save()
-                
-                # Mettre à jour le solde de l'ancienne carte (retirer l'ancien montant)
-                if ancienne_carte:
-                    ancienne_carte.solde -= ancien_montant
-                    ancienne_carte.save()
-                
-                # Mettre à jour le solde de la nouvelle carte (ajouter le nouveau montant)
-                nouvelle_carte = rechargement.carte_carburant
-                nouvelle_carte.solde += rechargement.montant_ttc
-                nouvelle_carte.save()
+                # Enregistrer le rechargement (la logique modèle recalcule les soldes)
+                with transaction.atomic():
+                    rechargement = form.save()
                 
                 messages.success(request, f'Le rechargement de carte a été modifié avec succès.')
                 return redirect('rechargement_carte_carburant_detail', pk=rechargement.pk)
@@ -943,12 +1094,6 @@ def rechargement_carte_carburant_delete(request, pk):
     rechargement = get_object_or_404(Rechargement_Carte_Carburant_HT, pk=pk)
     
     if request.method == 'POST':
-        # Mettre à jour le solde de la carte (retirer le montant du rechargement)
-        carte = rechargement.carte_carburant
-        carte.solde -= rechargement.montant_ttc
-        carte.save()
-        
-        # Supprimer le rechargement
         rechargement.delete()
         messages.success(request, f'Le rechargement de carte a été supprimé avec succès.')
         return redirect('rechargements_carte_carburant_list')
@@ -1009,12 +1154,8 @@ def achat_stock_carburant_rechargement(request, pk):
                 messages.error(request, "Cette carte a déjà été rechargée avec ce stock de carburant.")
             else:
                 try:
-                    rechargement.save()
-                    
-                    # Mettre à jour le solde de la carte
-                    carte = rechargement.carte_carburant
-                    carte.solde += rechargement.montant_ttc
-                    carte.save()
+                    with transaction.atomic():
+                        rechargement.save()
                     
                     messages.success(request, f'Le rechargement de carte a été créé avec succès.')
                     return redirect('achat_stock_carburant_rechargement', pk=pk)
@@ -1093,12 +1234,8 @@ def achat_carburant_ttc_rechargement(request, pk):
                 messages.error(request, "Cette carte a déjà été rechargée avec cet achat de carburant.")
             else:
                 try:
-                    rechargement.save()
-                    
-                    # Mettre à jour le solde de la carte
-                    carte = rechargement.carte_carburant
-                    carte.solde += rechargement.montant_ttc
-                    carte.save()
+                    with transaction.atomic():
+                        rechargement.save()
                     
                     messages.success(request, f'Le rechargement de carte a été créé avec succès.')
                     return redirect('achat_carburant_ttc_rechargement', pk=pk)
@@ -1271,11 +1408,32 @@ def demande_carte_carburant_traitement(request, pk):
         form = DemandeCarteCarburantTraitementForm(request.POST, instance=demande, service=demande.service)
         if form.is_valid():
             demande = form.save(commit=False)
-            demande.date_traitement = timezone.now()
-            demande.utilisateur_traitant = request.user
-            
-            # Enregistrer la demande (le formulaire s'occupe d'associer le rechargement)
-            demande.save()
+
+            try:
+                if demande.statut_demande == 'Acceptée':
+                    validate_demande(
+                        demande,
+                        utilisateur_traitant=request.user,
+                        commentaire=demande.commentaire,
+                    )
+                elif demande.statut_demande == 'Rejetée':
+                    reject_demande(
+                        demande,
+                        utilisateur_traitant=request.user,
+                        commentaire=demande.commentaire,
+                    )
+                else:
+                    demande.utilisateur_traitant = request.user
+                    demande.date_traitement = timezone.now()
+                    demande.save()
+            except Exception as e:
+                messages.error(request, str(e))
+                return render(request, 'core/demandes_carte_carburant/traitement.html', {
+                    'form': form,
+                    'demande': demande,
+                    'title': f'Traitement de la demande #{demande.id_demande}',
+                    'safe': True
+                })
             
             # Générer la fiche de ravitaillement si elle n'existe pas déjà
             if not demande.fiche_ravitaillement:
@@ -1496,79 +1654,16 @@ def demande_carte_carburant_cloture(request, pk):
                     'safe': True
                 })
             
-            if rechargement and carte:
-                from decimal import Decimal
-                
-                # Initialiser solde_restant s'il est None
-                if rechargement.solde_restant is None:
-                    rechargement.solde_restant = rechargement.montant_ttc
-                
-                # S'assurer que les valeurs de la demande sont correctement définies
-                if demande.ancien_solde_carte is None:
-                    demande.ancien_solde_carte = rechargement.solde_restant
-                
-                demande.nouveau_solde_carte = max(Decimal('0'), Decimal(str(demande.ancien_solde_carte)) - Decimal(str(demande.montant_ttc)))
-                
-                # Mettre à jour le volume restant du rechargement
-                # Calculer le volume consommé en fonction du montant du ravitaillement
-                if hasattr(rechargement, 'volume_restant') and rechargement.volume_restant is not None:
-                    volume_restant = rechargement.volume_restant
-                else:
-                    # Si volume_restant n'existe pas ou est None, initialiser avec le volume total
-                    volume_restant = rechargement.volume
-                    
-                # Calculer le ratio de volume consommé par rapport au montant
-                if rechargement.montant_ttc > 0:
-                    ratio = Decimal(str(demande.montant_ttc)) / Decimal(str(rechargement.montant_ttc))  # Conversion sécuritaire via string
-                    volume_consomme = rechargement.volume * ratio
-                    
-                    # Mettre à jour le volume restant
-                    if hasattr(rechargement, 'volume_restant'):
-                        rechargement.volume_restant = max(Decimal('0'), volume_restant - volume_consomme)
-                    else:
-                        # Si l'attribut n'existe pas, stocker l'information dans un champ temporaire
-                        rechargement._volume_restant = max(Decimal('0'), volume_restant - volume_consomme)
-            
-                # Mettre à jour le solde du rechargement
-                rechargement.solde_restant = demande.nouveau_solde_carte
-                
-                # Sauvegarder le rechargement avec les modifications
-                rechargement.save()
-                
-                # Recalculer le solde total de la carte à partir de tous les rechargements actifs
-                solde_total = Decimal('0')
-                
-                # Récupérer et additionner les soldes des rechargements HT
-                rechargements_ht = Rechargement_Carte_Carburant_HT.objects.filter(carte_carburant=carte)
-                if rechargements_ht.exists():
-                    solde_ht = rechargements_ht.aggregate(total=Sum('solde_restant'))['total'] or Decimal('0')
-                    solde_total += solde_ht
-                
-                # Récupérer et additionner les soldes des rechargements TTC
-                rechargements_ttc = Rechargement_Carte_Carburant_TTC.objects.filter(carte_carburant=carte)
-                if rechargements_ttc.exists():
-                    solde_ttc = rechargements_ttc.aggregate(total=Sum('solde_restant'))['total'] or Decimal('0')
-                    solde_total += solde_ttc
-                
-                # Mettre à jour le solde global de la carte
-                carte.solde = solde_total
-                carte.save()
-            elif carte:
-                # Fallback au comportement précédent si aucun rechargement n'est trouvé
-                if demande.ancien_solde_carte is None:
-                    demande.ancien_solde_carte = carte.solde
-                
-                demande.nouveau_solde_carte = max(Decimal('0'), Decimal(str(demande.ancien_solde_carte)) - Decimal(str(demande.montant_ttc)))
-                
-                # Mettre à jour le solde de la carte carburant
-                carte.solde = demande.nouveau_solde_carte
-                carte.save()
-            
-            # Sauvegarder la demande avec toutes les modifications
-            demande.save()
-            
-            # Générer automatiquement la fiche de ravitaillement
-            demande.regenerer_fiche_ravitaillement()
+            try:
+                close_demande(demande, rechargement=rechargement)
+            except Exception as e:
+                messages.error(request, str(e))
+                return render(request, 'core/demandes_carte_carburant/cloture.html', {
+                    'form': form,
+                    'demande': demande,
+                    'title': f'Clôture de la demande #{demande.id_demande}',
+                    'safe': True
+                })
             
             # Envoyer une notification par email aux gestionnaires carburant
             gestionnaires = Utilisateur.objects.filter(
@@ -1782,8 +1877,8 @@ def get_cartes_by_dotation(request):
                         if not rechargement:
                             continue
                         
-                        # Utiliser le montant du rechargement comme solde
-                        solde = rechargement.montant_ttc
+                        # Utiliser le solde restant du rechargement comme solde
+                        solde = rechargement.solde_restant if rechargement.solde_restant is not None else rechargement.montant_ttc
                         cartes.append({
                             'id': carte.id_carte_carburant,
                             'text': f"{carte.numero_carte} - Solde: {solde:,} FCFA".replace(",", " ")
@@ -1908,7 +2003,7 @@ def regenerer_fiche_ravitaillement(request, pk):
         # Récupérer la demande avec toutes ses relations
         demande = Demande_Carte_Carburant.objects.select_related(
             'vehicule', 'service', 'utilisateur_demandeur', 'utilisateur_traitant',
-            'rechargement_ht', 'rechargement_ttc', 'dotation'
+            'rechargement_ht', 'rechargement_ttc'
         ).get(pk=pk)
         
         # Vérifier si l'utilisateur a le droit d'accéder à cette demande
@@ -2118,6 +2213,19 @@ def releve_consommation_carburant(request):
         dotation_id = int(dotation_id)
         mois = int(mois)
         annee = int(annee)
+
+        try:
+            context = build_releve_consommation_context(
+                dotation_type=dotation_type,
+                dotation_id=dotation_id,
+                mois=mois,
+                annee=annee,
+                service_id=service_id,
+            )
+            return render(request, 'core/dotations/releve_consommation.html', context)
+        except Exception as e:
+            messages.error(request, str(e))
+            return redirect('suivi_dotations')
         
         # Déterminer les dates de début et fin du mois
         import datetime
@@ -2398,6 +2506,7 @@ def dashboard_carburant(request):
     
     # Calculer la consommation moyenne globale pour déterminer les statuts (Plus, Moins, Moyenne)
     consommations = [v['consommation_100km'] for v in vehicules_stats if v['consommation_100km'] is not None]
+    tendances_list = []
     if consommations:
         from decimal import Decimal
         consommation_moyenne = sum(consommations) / len(consommations)
@@ -2462,12 +2571,12 @@ def dashboard_carburant(request):
             })
         
         tendances_list.sort(key=lambda x: x['month_date'])
-        
-        return render(request, 'core/carburant/dashboard.html', {
-            'vehicules_stats': vehicules_stats,
-            'tendances': tendances_list,
-            'title': 'Tableau de bord Carburant'
-        })
+
+    return render(request, 'core/carburant/dashboard.html', {
+        'vehicules_stats': vehicules_stats,
+        'tendances': tendances_list,
+        'title': 'Tableau de bord Carburant'
+    })
 
 @login_required
 @user_passes_test(lambda u: u.groupe.filter(nom_groupe__in=['Administrateur', 'Gestionnaire Carburant']).exists())
@@ -2716,54 +2825,89 @@ def export_excel(request, ravitaillements):
 @login_required
 @user_passes_test(lambda u: u.groupe.filter(nom_groupe__in=['Administrateur', 'Gestionnaire Carburant']).exists())
 def get_cartes_by_dotation(request):
-    """API pour obtenir les cartes associées à une dotation spécifique"""
-    dotation = request.GET.get('dotation')
-    cartes_ids = []
-    cartes_data = []
-    
-    if dotation and dotation != 'tous':
-        if dotation.startswith('ht_'):
-            # Dotation HT
-            achat_ht_id = dotation.replace('ht_', '')
-            try:
-                achat_ht_id = int(achat_ht_id)
-                # Récupérer les cartes associées à cette dotation HT
-                rechargements = Rechargement_Carte_Carburant_HT.objects.filter(
-                    achat_stock_carburant_ht__id_achat_stock_carburant_ht=achat_ht_id
-                ).select_related('carte_carburant')
-                
-                for rechargement in rechargements:
-                    carte = rechargement.carte_carburant
-                    if carte.id_carte_carburant not in cartes_ids:
-                        cartes_ids.append(carte.id_carte_carburant)
-                        cartes_data.append({
-                            'id': carte.id_carte_carburant,
-                            'numero': carte.numero_carte
-                        })
-            except ValueError:
-                pass
-        elif dotation.startswith('ttc_'):
-            # Dotation TTC
-            achat_ttc_id = dotation.replace('ttc_', '')
-            try:
-                achat_ttc_id = int(achat_ttc_id)
-                # Récupérer les cartes associées à cette dotation TTC
-                rechargements = Rechargement_Carte_Carburant_TTC.objects.filter(
-                    achat_carburant_ttc__id_achat_carburant_ttc=achat_ttc_id
-                ).select_related('carte_carburant')
-                
-                for rechargement in rechargements:
-                    carte = rechargement.carte_carburant
-                    if carte.id_carte_carburant not in cartes_ids:
-                        cartes_ids.append(carte.id_carte_carburant)
-                        cartes_data.append({
-                            'id': carte.id_carte_carburant,
-                            'numero': carte.numero_carte
-                        })
-            except ValueError:
-                pass
-    
-    return JsonResponse({'cartes': cartes_ids, 'cartes_data': cartes_data})
+    """API pour obtenir les cartes disponibles en fonction d'une dotation."""
+    dotation_source = request.GET.get('dotation_source') or request.GET.get('dotation', '')
+    service_id = request.GET.get('service_id')
+
+    # Compatibilité legacy: paramètres ht_/ttc_
+    if isinstance(dotation_source, str) and dotation_source.startswith('ht_'):
+        dotation_source = f"HT_{dotation_source.replace('ht_', '')}"
+    elif isinstance(dotation_source, str) and dotation_source.startswith('ttc_'):
+        dotation_source = f"TTC_{dotation_source.replace('ttc_', '')}"
+
+    if dotation_source in ('tous', None):
+        dotation_source = ''
+
+    # Compatibilité: si service_id absent, utiliser le premier service de l'utilisateur
+    if not service_id:
+        user_service = request.user.service.first()
+        service_id = user_service.id_service if user_service else None
+
+    if not service_id:
+        return JsonResponse({'error': 'Paramètre service_id manquant'}, status=400)
+
+    try:
+        service = Service.objects.get(pk=service_id)
+    except Service.DoesNotExist:
+        return JsonResponse({'error': 'Service non trouvé'}, status=404)
+
+    cartes = []
+
+    if isinstance(dotation_source, str) and dotation_source.startswith('HT_'):
+        dotation_id = int(dotation_source.split('_')[1])
+        try:
+            dotation = Achat_Stock_Carburant_HT.objects.get(pk=dotation_id)
+            rechargements = Rechargement_Carte_Carburant_HT.objects.filter(
+                achat_stock_carburant_ht=dotation,
+                carte_carburant__service=service,
+                carte_carburant__statut='Disponible',
+            ).select_related('carte_carburant')
+
+            for rechargement in rechargements:
+                solde = rechargement.solde_restant if rechargement.solde_restant is not None else rechargement.montant_ttc
+                cartes.append({
+                    'id': rechargement.carte_carburant.id_carte_carburant,
+                    'text': f"{rechargement.carte_carburant.numero_carte} - Solde: {solde:,} FCFA".replace(',', ' '),
+                    'numero': rechargement.carte_carburant.numero_carte,
+                })
+        except Achat_Stock_Carburant_HT.DoesNotExist:
+            return JsonResponse({'error': 'Dotation non trouvée'}, status=404)
+
+    elif isinstance(dotation_source, str) and dotation_source.startswith('TTC_'):
+        dotation_id = int(dotation_source.split('_')[1])
+        try:
+            dotation = Achat_Carburant_TTC.objects.get(pk=dotation_id)
+            rechargements = Rechargement_Carte_Carburant_TTC.objects.filter(
+                achat_carburant_ttc=dotation,
+                carte_carburant__service=service,
+                carte_carburant__statut='Disponible',
+            ).select_related('carte_carburant')
+
+            for rechargement in rechargements:
+                solde = rechargement.solde_restant if rechargement.solde_restant is not None else rechargement.montant_ttc
+                cartes.append({
+                    'id': rechargement.carte_carburant.id_carte_carburant,
+                    'text': f"{rechargement.carte_carburant.numero_carte} - Solde: {solde:,} FCFA".replace(',', ' '),
+                    'numero': rechargement.carte_carburant.numero_carte,
+                })
+        except Achat_Carburant_TTC.DoesNotExist:
+            return JsonResponse({'error': 'Dotation non trouvée'}, status=404)
+    else:
+        cartes_query = Carte_Carburant.objects.filter(
+            service=service,
+            statut='Disponible',
+        ).order_by('numero_carte')
+
+        for carte in cartes_query:
+            cartes.append({
+                'id': carte.id_carte_carburant,
+                'text': f"{carte.numero_carte} - Solde: {carte.format_solde()}",
+                'numero': carte.numero_carte,
+            })
+
+    cartes_ids = [item['id'] for item in cartes]
+    cartes_data = [{'id': item['id'], 'numero': item['numero']} for item in cartes]
+    return JsonResponse({'cartes': cartes, 'cartes_ids': cartes_ids, 'cartes_data': cartes_data})
 
 # Views pour les Types de Maintenance
 class TypeMaintenanceListView(LoginRequiredMixin, ListView):

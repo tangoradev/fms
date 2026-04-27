@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.conf import settings
 
@@ -116,7 +117,10 @@ class Vehicule(models.Model):
     
     STATUT_CHOICES = (
         ('Disponible', 'Disponible'),
+        ('En service', 'En service'),
+        ('En maintenance', 'En maintenance'),
         ('Non Disponible', 'Non Disponible'),
+        ('Réformé', 'Réformé'),
     )
     
     id_vehicule = models.AutoField(primary_key=True)
@@ -141,6 +145,133 @@ class Vehicule(models.Model):
     def __str__(self):
         return f"{self.marque} {self.modele} - {self.immatriculation}"
 
+    def clean(self):
+        super().clean()
+        if self.date_mise_en_service and self.date_mise_en_service > timezone.now().date():
+            raise ValidationError({
+                'date_mise_en_service': "La date de mise en service ne peut pas être dans le futur."
+            })
+
+    @property
+    def documents_actifs(self):
+        return self.documents.filter(est_actif=True)
+
+    @property
+    def affectation_active(self):
+        return self.affectations.filter(date_fin__isnull=True).order_by('-date_debut').first()
+
+    def est_disponible(self):
+        return self.statut == 'Disponible'
+
+
+class VehiculeAffectation(models.Model):
+    """
+    Historique des affectations de véhicules (service/chauffeur principal).
+    Une seule affectation active est autorisée par véhicule.
+    """
+    id_affectation = models.AutoField(primary_key=True)
+    vehicule = models.ForeignKey(Vehicule, on_delete=models.CASCADE, related_name='affectations')
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='affectations_vehicules')
+    chauffeur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='affectations_vehicules',
+        verbose_name="Chauffeur principal"
+    )
+    date_debut = models.DateField(default=timezone.now)
+    date_fin = models.DateField(blank=True, null=True)
+    note = models.TextField(blank=True, null=True)
+    est_active = models.BooleanField(default=True)
+    cree_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='affectations_creees'
+    )
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Affectation véhicule"
+        verbose_name_plural = "Affectations véhicules"
+        ordering = ['-date_debut', '-date_creation']
+
+    def __str__(self):
+        return f"{self.vehicule} -> {self.service} ({self.date_debut} - {self.date_fin or 'en cours'})"
+
+    def clean(self):
+        super().clean()
+        if self.date_fin and self.date_fin < self.date_debut:
+            raise ValidationError({
+                'date_fin': "La date de fin ne peut pas être antérieure à la date de début."
+            })
+
+        if self.est_active and self.date_fin:
+            raise ValidationError({
+                'est_active': "Une affectation avec date de fin renseignée ne peut pas rester active."
+            })
+
+        if self.est_active:
+            active_qs = VehiculeAffectation.objects.filter(vehicule=self.vehicule, est_active=True)
+            if self.pk:
+                active_qs = active_qs.exclude(pk=self.pk)
+            if active_qs.exists():
+                raise ValidationError("Ce véhicule possède déjà une affectation active.")
+
+    def save(self, *args, **kwargs):
+        self.est_active = self.date_fin is None
+        super().save(*args, **kwargs)
+
+
+class VehiculeDocument(models.Model):
+    """
+    Documents de conformité d'un véhicule (assurance, visite technique, etc.).
+    """
+    TYPE_CHOICES = (
+        ('assurance', 'Assurance'),
+        ('visite_technique', 'Visite technique'),
+        ('carte_grise', 'Carte grise'),
+        ('autre', 'Autre'),
+    )
+
+    id_document_vehicule = models.AutoField(primary_key=True)
+    vehicule = models.ForeignKey(Vehicule, on_delete=models.CASCADE, related_name='documents')
+    type_document = models.CharField(max_length=30, choices=TYPE_CHOICES)
+    reference = models.CharField(max_length=100, blank=True, null=True)
+    date_emission = models.DateField(blank=True, null=True)
+    date_expiration = models.DateField(blank=True, null=True)
+    fichier = models.FileField(upload_to='vehicules/conformite/', blank=True, null=True)
+    commentaire = models.TextField(blank=True, null=True)
+    est_actif = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Document véhicule"
+        verbose_name_plural = "Documents véhicules"
+        ordering = ['date_expiration', '-date_creation']
+
+    def __str__(self):
+        return f"{self.vehicule} - {self.get_type_document_display()}"
+
+    def clean(self):
+        super().clean()
+        if self.date_emission and self.date_expiration and self.date_expiration < self.date_emission:
+            raise ValidationError({
+                'date_expiration': "La date d'expiration ne peut pas être antérieure à la date d'émission."
+            })
+
+    def est_expire(self):
+        return bool(self.date_expiration and self.date_expiration < timezone.now().date())
+
+    def expire_bientot(self, jours=30):
+        if not self.date_expiration:
+            return False
+        delta = (self.date_expiration - timezone.now().date()).days
+        return 0 <= delta <= jours
+
 
 class Carte_Carburant(models.Model):
     """
@@ -155,6 +286,7 @@ class Carte_Carburant(models.Model):
         ('Disponible', 'Disponible'),
         ('Attribué', 'Attribué'),
         ('Non disponible', 'Non disponible'),
+        ('Bloquée', 'Bloquée'),
     )
     
     id_carte_carburant = models.AutoField(primary_key=True)
@@ -217,6 +349,21 @@ class Carte_Carburant(models.Model):
                 return rechargement.solde_restant
             return rechargement.montant_ttc
         return self.solde
+
+    def recalculer_solde(self, save=True):
+        """Recalcule le solde carte à partir des soldes restants de tous les rechargements."""
+        total_ht = self.rechargements_ht.aggregate(total=models.Sum('solde_restant'))['total'] or 0
+        total_ttc = self.rechargements_ttc.aggregate(total=models.Sum('solde_restant'))['total'] or 0
+        self.solde = max(0, int(total_ht + total_ttc))
+
+        # Si la carte est épuisée, détacher les dotations actives
+        if self.solde == 0:
+            self.dotation_active_ht = None
+            self.dotation_active_ttc = None
+
+        if save:
+            self.save(update_fields=['solde', 'dotation_active_ht', 'dotation_active_ttc'])
+        return self.solde
     
     def get_solde_actif_formate(self):
         """Retourne le solde du rechargement actif formaté ou le solde total formaté si aucun rechargement actif"""
@@ -233,11 +380,12 @@ class Carte_Carburant(models.Model):
         # Vérifier si c'est une modification (pas une création)
         is_update = self.pk is not None
         
-        # Définir le statut par défaut en fonction du solde
-        if self.solde == 0:
-            self.statut = 'Non disponible'
-        elif self.solde > 0 and self.statut == 'Non disponible':
-            self.statut = 'Disponible'
+        # Définir le statut par défaut en fonction du solde (sauf carte explicitement bloquée)
+        if self.statut != 'Bloquée':
+            if self.solde == 0:
+                self.statut = 'Non disponible'
+            elif self.solde > 0 and self.statut == 'Non disponible':
+                self.statut = 'Disponible'
         
         # Si c'est une mise à jour et que le solde est 0, réinitialiser les dotations actives
         if is_update and self.solde == 0:
@@ -338,17 +486,24 @@ class Achat_Stock_Carburant_HT(models.Model):
     def format_montant_ttc(self):
         """Formater le montant TTC avec séparateur de milliers"""
         return self.format_montant(self.montant_ttc)
+
+    def clean(self):
+        super().clean()
+        if self.montant_ttc <= 0:
+            raise ValidationError({'montant_ttc': "Le montant TTC doit être supérieur à zéro."})
+        if self.montant_ht <= 0:
+            raise ValidationError({'montant_ht': "Le montant HT doit être supérieur à zéro."})
+        if self.volume <= 0:
+            raise ValidationError({'volume': "Le volume doit être supérieur à zéro."})
+        if self.montant_ttc < self.montant_ht:
+            raise ValidationError({'montant_ttc': "Le montant TTC ne peut pas être inférieur au montant HT."})
     
     @property
     def solde_theorique(self):
-        """Calculer le solde théorique de la dotation (somme des montants TTC des rechargements de cartes)"""
+        """Calculer le solde théorique restant de la dotation."""
         from django.db.models import Sum
-        # Récupérer tous les rechargements associés à cet achat de carburant HT
-        rechargements = self.rechargements_ht.all()
-        # Calculer la somme des montants TTC des rechargements
-        somme_montants_ttc = rechargements.aggregate(total=Sum('montant_ttc'))['total'] or 0
-        # Le solde théorique est la somme des montants TTC des rechargements
-        return somme_montants_ttc
+        montant_recharge = self.rechargements_ht.aggregate(total=Sum('montant_ttc'))['total'] or 0
+        return max(0, self.montant_ttc - montant_recharge)
     
     def format_solde_theorique(self):
         """Formater le solde théorique avec séparateur de milliers"""
@@ -371,13 +526,12 @@ class Achat_Stock_Carburant_HT(models.Model):
     
     def save(self, *args, **kwargs):
         """Surcharge de la méthode save pour mettre à jour le statut en fonction du solde théorique"""
-        # Mettre à jour le statut en fonction du solde théorique
-        # Cette vérification ne peut être faite qu'après la sauvegarde initiale (pour les nouveaux objets)
-        if self.pk:
-            if self.solde_theorique == 0:
-                self.statut = 'Close'
-            else:
-                self.statut = 'Ouverte'
+        if self.pk is None:
+            self.statut = 'Ouverte'
+        elif self.solde_theorique <= 0:
+            self.statut = 'Close'
+        else:
+            self.statut = 'Ouverte'
         
         super().save(*args, **kwargs)
 
@@ -433,14 +587,10 @@ class Achat_Carburant_TTC(models.Model):
     
     @property
     def solde_theorique(self):
-        """Calculer le solde théorique de la dotation (somme des montants TTC des rechargements de cartes)"""
+        """Calculer le solde théorique restant de la dotation."""
         from django.db.models import Sum
-        # Récupérer tous les rechargements associés à cet achat de carburant TTC
-        rechargements = self.rechargements_ttc.all()
-        # Calculer la somme des montants TTC des rechargements
-        somme_montants_ttc = rechargements.aggregate(total=Sum('montant_ttc'))['total'] or 0
-        # Le solde théorique est la somme des montants TTC des rechargements
-        return somme_montants_ttc
+        montant_recharge = self.rechargements_ttc.aggregate(total=Sum('montant_ttc'))['total'] or 0
+        return max(0, self.montant_ttc - montant_recharge)
     
     def format_solde_theorique(self):
         """Formater le solde théorique avec séparateur de milliers"""
@@ -463,13 +613,12 @@ class Achat_Carburant_TTC(models.Model):
     
     def save(self, *args, **kwargs):
         """Surcharge de la méthode save pour mettre à jour le statut en fonction du solde théorique"""
-        # Mettre à jour le statut en fonction du solde théorique
-        # Cette vérification ne peut être faite qu'après la sauvegarde initiale (pour les nouveaux objets)
-        if self.pk:
-            if self.solde_theorique == 0:
-                self.statut = 'Close'
-            else:
-                self.statut = 'Ouverte'
+        if self.pk is None:
+            self.statut = 'Ouverte'
+        elif self.solde_theorique <= 0:
+            self.statut = 'Close'
+        else:
+            self.statut = 'Ouverte'
         
         super().save(*args, **kwargs)
 
@@ -511,14 +660,48 @@ class Rechargement_Carte_Carburant_HT(models.Model):
     def format_montant_ttc(self):
         """Formater le montant TTC avec séparateur de milliers"""
         return self.format_montant(self.montant_ttc)
+
+    def clean(self):
+        super().clean()
+        if self.montant_ttc <= 0:
+            raise ValidationError({'montant_ttc': "Le montant TTC doit être supérieur à zéro."})
+        if self.volume <= 0:
+            raise ValidationError({'volume': "Le volume doit être supérieur à zéro."})
+
+        if self.carte_carburant and self.achat_stock_carburant_ht and self.carte_carburant.service_id != self.achat_stock_carburant_ht.service_id:
+            raise ValidationError("La carte et la dotation HT doivent appartenir au même service.")
+
+        deja_recharge = Rechargement_Carte_Carburant_HT.objects.filter(
+            achat_stock_carburant_ht=self.achat_stock_carburant_ht,
+            carte_carburant=self.carte_carburant,
+        )
+        if self.pk:
+            deja_recharge = deja_recharge.exclude(pk=self.pk)
+        if deja_recharge.exists():
+            raise ValidationError("Cette carte a déjà été rechargée avec cette dotation HT.")
+
+        if self.carte_carburant and self.carte_carburant.dotation_active_ttc:
+            raise ValidationError("Cette carte est liée à une dotation TTC active.")
+
+        recharge_existant = Rechargement_Carte_Carburant_HT.objects.filter(
+            achat_stock_carburant_ht=self.achat_stock_carburant_ht,
+        )
+        if self.pk:
+            recharge_existant = recharge_existant.exclude(pk=self.pk)
+        montant_deja_recharge = recharge_existant.aggregate(total=models.Sum('montant_ttc'))['total'] or 0
+        if montant_deja_recharge + self.montant_ttc > self.achat_stock_carburant_ht.montant_ttc:
+            raise ValidationError("Le montant rechargé dépasse le montant disponible de la dotation HT.")
         
     def save(self, *args, **kwargs):
         """
         Surcharge de la méthode save pour initialiser le volume_restant et mettre à jour la carte
         et le solde de la carte lors d'un rechargement.
         """
+        self.full_clean()
+
         # Vérifier si c'est un nouveau rechargement (pas d'ID)
         is_new = self.pk is None
+        previous = None if is_new else Rechargement_Carte_Carburant_HT.objects.get(pk=self.pk)
         
         # Si c'est un nouveau rechargement, initialiser le volume_restant
         if is_new and self.volume_restant is None:
@@ -531,26 +714,25 @@ class Rechargement_Carte_Carburant_HT(models.Model):
         # Sauvegarder d'abord le rechargement
         super().save(*args, **kwargs)
         
-        # Si c'est un nouveau rechargement, mettre à jour la carte
-        if is_new:
-            carte = self.carte_carburant
-            
-            # Mettre à jour le solde de la carte
-            carte.solde += self.montant_ttc
-            
-            # Vérifier si la carte a déjà une dotation active différente
-            if carte.dotation_active_ttc or (carte.dotation_active_ht and carte.dotation_active_ht != self.achat_stock_carburant_ht):
-                # Si la carte a déjà une dotation active différente, on ne peut pas la recharger
-                raise ValueError("Cette carte est déjà associée à une autre dotation et ne peut pas être rechargée par cette dotation.")
-            
-            carte.dotation_active_ht = self.achat_stock_carburant_ht
-            carte.dotation_active_ttc = None
-            
-            # Mettre à jour le statut de la dotation en fonction du solde théorique
-            self.achat_stock_carburant_ht.save()
-            
-            # Sauvegarder la carte
-            carte.save()
+        if previous and previous.carte_carburant_id != self.carte_carburant_id:
+            previous.carte_carburant.recalculer_solde()
+
+        carte = self.carte_carburant
+        carte.dotation_active_ht = self.achat_stock_carburant_ht
+        carte.dotation_active_ttc = None
+        carte.recalculer_solde()
+
+        # Mettre à jour le statut de la dotation en fonction du restant
+        self.achat_stock_carburant_ht.save()
+
+    def delete(self, *args, **kwargs):
+        carte = self.carte_carburant
+        achat = self.achat_stock_carburant_ht
+        super().delete(*args, **kwargs)
+        if carte:
+            carte.recalculer_solde()
+        if achat:
+            achat.save()
 
 
 class Rechargement_Carte_Carburant_TTC(models.Model):
@@ -590,14 +772,48 @@ class Rechargement_Carte_Carburant_TTC(models.Model):
     def format_montant_ttc(self):
         """Formater le montant TTC avec séparateur de milliers"""
         return self.format_montant(self.montant_ttc)
+
+    def clean(self):
+        super().clean()
+        if self.montant_ttc <= 0:
+            raise ValidationError({'montant_ttc': "Le montant TTC doit être supérieur à zéro."})
+        if self.volume <= 0:
+            raise ValidationError({'volume': "Le volume doit être supérieur à zéro."})
+
+        if self.carte_carburant and self.achat_carburant_ttc and self.carte_carburant.service_id != self.achat_carburant_ttc.service_id:
+            raise ValidationError("La carte et la dotation TTC doivent appartenir au même service.")
+
+        deja_recharge = Rechargement_Carte_Carburant_TTC.objects.filter(
+            achat_carburant_ttc=self.achat_carburant_ttc,
+            carte_carburant=self.carte_carburant,
+        )
+        if self.pk:
+            deja_recharge = deja_recharge.exclude(pk=self.pk)
+        if deja_recharge.exists():
+            raise ValidationError("Cette carte a déjà été rechargée avec cette dotation TTC.")
+
+        if self.carte_carburant and self.carte_carburant.dotation_active_ht:
+            raise ValidationError("Cette carte est liée à une dotation HT active.")
+
+        recharge_existant = Rechargement_Carte_Carburant_TTC.objects.filter(
+            achat_carburant_ttc=self.achat_carburant_ttc,
+        )
+        if self.pk:
+            recharge_existant = recharge_existant.exclude(pk=self.pk)
+        montant_deja_recharge = recharge_existant.aggregate(total=models.Sum('montant_ttc'))['total'] or 0
+        if montant_deja_recharge + self.montant_ttc > self.achat_carburant_ttc.montant_ttc:
+            raise ValidationError("Le montant rechargé dépasse le montant disponible de la dotation TTC.")
         
     def save(self, *args, **kwargs):
         """
         Surcharge de la méthode save pour initialiser le volume_restant et mettre à jour la carte
         et le solde de la carte lors d'un rechargement.
         """
+        self.full_clean()
+
         # Vérifier si c'est un nouveau rechargement (pas d'ID)
         is_new = self.pk is None
+        previous = None if is_new else Rechargement_Carte_Carburant_TTC.objects.get(pk=self.pk)
         
         # Si c'est un nouveau rechargement, initialiser le volume_restant
         if is_new and self.volume_restant is None:
@@ -610,26 +826,25 @@ class Rechargement_Carte_Carburant_TTC(models.Model):
         # Sauvegarder d'abord le rechargement
         super().save(*args, **kwargs)
         
-        # Si c'est un nouveau rechargement, mettre à jour la carte
-        if is_new:
-            carte = self.carte_carburant
-            
-            # Mettre à jour le solde de la carte
-            carte.solde += self.montant_ttc
-            
-            # Vérifier si la carte a déjà une dotation active différente
-            if carte.dotation_active_ht or (carte.dotation_active_ttc and carte.dotation_active_ttc != self.achat_carburant_ttc):
-                # Si la carte a déjà une dotation active différente, on ne peut pas la recharger
-                raise ValueError("Cette carte est déjà associée à une autre dotation et ne peut pas être rechargée par cette dotation.")
-            
-            carte.dotation_active_ttc = self.achat_carburant_ttc
-            carte.dotation_active_ht = None
-            
-            # Mettre à jour le statut de la dotation en fonction du solde théorique
-            self.achat_carburant_ttc.save()
-            
-            # Sauvegarder la carte
-            carte.save()
+        if previous and previous.carte_carburant_id != self.carte_carburant_id:
+            previous.carte_carburant.recalculer_solde()
+
+        carte = self.carte_carburant
+        carte.dotation_active_ttc = self.achat_carburant_ttc
+        carte.dotation_active_ht = None
+        carte.recalculer_solde()
+
+        # Mettre à jour le statut de la dotation en fonction du restant
+        self.achat_carburant_ttc.save()
+
+    def delete(self, *args, **kwargs):
+        carte = self.carte_carburant
+        achat = self.achat_carburant_ttc
+        super().delete(*args, **kwargs)
+        if carte:
+            carte.recalculer_solde()
+        if achat:
+            achat.save()
 
 
 class Demande_Carte_Carburant(models.Model):
@@ -781,23 +996,6 @@ class Demande_Carte_Carburant(models.Model):
             # Calculer le montant TTC si volume et prix unitaire sont renseignés
             if self.volume and self.prix_unitaire_ttc and not self.montant_ttc:
                 self.montant_ttc = int(float(self.volume) * self.prix_unitaire_ttc)
-            
-            # Mettre à jour le solde du rechargement et de la carte
-            carte = self.get_carte_carburant
-            if carte and self.montant_ttc:
-                # Mettre à jour le solde de la carte
-                nouveau_solde = carte.solde - self.montant_ttc
-                carte.solde = nouveau_solde
-                carte.save()
-                
-                # Mettre à jour le solde du rechargement HT ou TTC
-                if self.rechargement_ht:
-                    self.rechargement_ht.solde_restant = self.rechargement_ht.montant_ttc - self.montant_ttc
-                    self.rechargement_ht.save()
-                
-                elif self.rechargement_ttc:
-                    self.rechargement_ttc.solde_restant = self.rechargement_ttc.montant_ttc - self.montant_ttc
-                    self.rechargement_ttc.save()
         
         super().save(*args, **kwargs)
     
