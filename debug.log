@@ -27364,3 +27364,65 @@ Traceback (most recent call last):
     )  # missing attribute
     ^
 django.template.base.VariableDoesNotExist: Failed lookup for key [statut] in <Planification: Planification Vidange - Toyota Land Cruiser - MT-001-AA - Échéance: 15000 km>
+INFO 2026-04-28 19:14:26,986 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 19:14:26,986 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 19:16:32,554 basehttp "GET / HTTP/1.1" 200 4736
+INFO 2026-04-28 19:16:32,554 basehttp "GET / HTTP/1.1" 200 4736
+WARNING 2026-04-28 19:16:34,490 log Not Found: /favicon.ico
+WARNING 2026-04-28 19:16:34,490 log Not Found: /favicon.ico
+WARNING 2026-04-28 19:16:34,490 basehttp "GET /favicon.ico HTTP/1.1" 404 18085
+WARNING 2026-04-28 19:16:34,490 basehttp "GET /favicon.ico HTTP/1.1" 404 18085
+INFO 2026-04-28 19:16:36,594 basehttp "GET /login/ HTTP/1.1" 200 7633
+INFO 2026-04-28 19:16:36,594 basehttp "GET /login/ HTTP/1.1" 200 7633
+WARNING 2026-04-28 19:16:36,750 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:16:36,750 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:16:36,752 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 19:16:36,752 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 19:16:39,111 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:16:39,111 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:16:39,112 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 19:16:39,112 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 19:16:46,502 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2026-04-28 19:16:46,502 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2026-04-28 19:16:46,547 basehttp "GET / HTTP/1.1" 200 18240
+INFO 2026-04-28 19:16:46,547 basehttp "GET / HTTP/1.1" 200 18240
+WARNING 2026-04-28 19:16:48,962 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:16:48,962 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:16:48,962 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 19:16:48,962 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 19:16:54,266 basehttp "GET /types-maintenance/ HTTP/1.1" 200 18900
+INFO 2026-04-28 19:16:54,266 basehttp "GET /types-maintenance/ HTTP/1.1" 200 18900
+WARNING 2026-04-28 19:16:56,704 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:16:56,704 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:16:56,705 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 19:16:56,705 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 19:16:58,694 basehttp "GET /maintenances/ HTTP/1.1" 200 10777
+INFO 2026-04-28 19:16:58,694 basehttp "GET /maintenances/ HTTP/1.1" 200 10777
+WARNING 2026-04-28 19:17:01,070 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:17:01,070 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:17:01,071 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 19:17:01,071 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 19:17:02,891 basehttp "GET /planifications/ HTTP/1.1" 200 10648
+INFO 2026-04-28 19:17:02,891 basehttp "GET /planifications/ HTTP/1.1" 200 10648
+WARNING 2026-04-28 19:17:03,550 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:17:03,550 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:17:03,551 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 19:17:03,551 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 19:17:05,308 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:17:05,308 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:17:05,310 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 19:17:05,310 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 19:17:06,714 basehttp "GET /maintenance/rapport/ HTTP/1.1" 200 16949
+INFO 2026-04-28 19:17:06,714 basehttp "GET /maintenance/rapport/ HTTP/1.1" 200 16949
+WARNING 2026-04-28 19:17:09,211 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:17:09,211 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:17:09,211 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 19:17:09,211 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 19:17:31,372 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-04-28 19:17:31,372 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2026-04-28 19:17:31,373 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 18196
+WARNING 2026-04-28 19:17:31,373 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 18196
+WARNING 2026-04-28 19:18:03,955 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:18:03,955 log Not Found: /service-worker.js
+WARNING 2026-04-28 19:18:03,956 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 19:18:03,956 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
