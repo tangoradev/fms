@@ -27008,3 +27008,359 @@ Traceback (most recent call last):
     return dictionary.get(key, None)
            ^^^^^^^^^^^^^^
 AttributeError: 'str' object has no attribute 'get'
+INFO 2026-04-27 22:40:17,573 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 22:40:17,573 autoreload Watching for file changes with StatReloader
+INFO 2026-04-27 22:40:33,064 basehttp "GET / HTTP/1.1" 200 4736
+INFO 2026-04-27 22:40:33,064 basehttp "GET / HTTP/1.1" 200 4736
+WARNING 2026-04-27 22:40:35,796 log Not Found: /favicon.ico
+WARNING 2026-04-27 22:40:35,796 log Not Found: /favicon.ico
+WARNING 2026-04-27 22:40:35,798 basehttp "GET /favicon.ico HTTP/1.1" 404 18085
+WARNING 2026-04-27 22:40:35,798 basehttp "GET /favicon.ico HTTP/1.1" 404 18085
+INFO 2026-04-27 22:40:37,292 basehttp "GET /login/ HTTP/1.1" 200 7633
+INFO 2026-04-27 22:40:37,292 basehttp "GET /login/ HTTP/1.1" 200 7633
+WARNING 2026-04-27 22:40:40,452 log Not Found: /service-worker.js
+WARNING 2026-04-27 22:40:40,452 log Not Found: /service-worker.js
+WARNING 2026-04-27 22:40:40,453 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-27 22:40:40,453 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-27 22:40:49,182 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2026-04-27 22:40:49,182 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2026-04-27 22:40:49,244 basehttp "GET / HTTP/1.1" 200 18240
+INFO 2026-04-27 22:40:49,244 basehttp "GET / HTTP/1.1" 200 18240
+WARNING 2026-04-27 22:40:52,071 log Not Found: /service-worker.js
+WARNING 2026-04-27 22:40:52,071 log Not Found: /service-worker.js
+WARNING 2026-04-27 22:40:52,072 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-27 22:40:52,072 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-27 22:41:04,093 log Not Found: /service-worker.js
+WARNING 2026-04-27 22:41:04,093 log Not Found: /service-worker.js
+WARNING 2026-04-27 22:41:04,094 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-27 22:41:04,094 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-27 22:44:15,091 basehttp "GET /planification-courses/ HTTP/1.1" 200 49571
+INFO 2026-04-27 22:44:15,091 basehttp "GET /planification-courses/ HTTP/1.1" 200 49571
+WARNING 2026-04-27 22:44:19,314 log Not Found: /service-worker.js
+WARNING 2026-04-27 22:44:19,314 log Not Found: /service-worker.js
+WARNING 2026-04-27 22:44:19,315 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-27 22:44:19,315 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-27 22:44:26,130 basehttp "GET /demandes-courses/ HTTP/1.1" 200 12636
+INFO 2026-04-27 22:44:26,130 basehttp "GET /demandes-courses/ HTTP/1.1" 200 12636
+WARNING 2026-04-27 22:44:28,949 log Not Found: /service-worker.js
+WARNING 2026-04-27 22:44:28,949 log Not Found: /service-worker.js
+WARNING 2026-04-27 22:44:28,950 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-27 22:44:28,950 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 06:37:16,919 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 06:37:16,919 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 06:38:05,042 basehttp "GET / HTTP/1.1" 200 4736
+INFO 2026-04-28 06:38:05,042 basehttp "GET / HTTP/1.1" 200 4736
+WARNING 2026-04-28 06:38:07,284 log Not Found: /favicon.ico
+WARNING 2026-04-28 06:38:07,284 log Not Found: /favicon.ico
+WARNING 2026-04-28 06:38:07,285 basehttp "GET /favicon.ico HTTP/1.1" 404 18085
+WARNING 2026-04-28 06:38:07,285 basehttp "GET /favicon.ico HTTP/1.1" 404 18085
+WARNING 2026-04-28 06:38:09,469 log Not Found: /service-worker.js
+WARNING 2026-04-28 06:38:09,469 log Not Found: /service-worker.js
+WARNING 2026-04-28 06:38:09,469 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 06:38:09,469 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 06:38:11,486 basehttp "GET /login/ HTTP/1.1" 200 7633
+INFO 2026-04-28 06:38:11,486 basehttp "GET /login/ HTTP/1.1" 200 7633
+WARNING 2026-04-28 06:38:14,214 log Not Found: /service-worker.js
+WARNING 2026-04-28 06:38:14,214 log Not Found: /service-worker.js
+WARNING 2026-04-28 06:38:14,215 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 06:38:14,215 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 06:38:24,532 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2026-04-28 06:38:24,532 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2026-04-28 06:38:24,572 basehttp "GET / HTTP/1.1" 200 18240
+INFO 2026-04-28 06:38:24,572 basehttp "GET / HTTP/1.1" 200 18240
+WARNING 2026-04-28 06:38:27,390 log Not Found: /service-worker.js
+WARNING 2026-04-28 06:38:27,390 log Not Found: /service-worker.js
+WARNING 2026-04-28 06:38:27,392 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 06:38:27,392 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 06:38:36,050 log Not Found: /service-worker.js
+WARNING 2026-04-28 06:38:36,050 log Not Found: /service-worker.js
+WARNING 2026-04-28 06:38:36,051 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 06:38:36,051 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 17:23:52,250 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:23:52,250 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:24:25,636 basehttp "GET / HTTP/1.1" 200 4736
+INFO 2026-04-28 17:24:25,636 basehttp "GET / HTTP/1.1" 200 4736
+WARNING 2026-04-28 17:24:27,732 log Not Found: /favicon.ico
+WARNING 2026-04-28 17:24:27,732 log Not Found: /favicon.ico
+WARNING 2026-04-28 17:24:27,733 basehttp "GET /favicon.ico HTTP/1.1" 404 18085
+WARNING 2026-04-28 17:24:27,733 basehttp "GET /favicon.ico HTTP/1.1" 404 18085
+WARNING 2026-04-28 17:24:29,739 log Not Found: /service-worker.js
+WARNING 2026-04-28 17:24:29,739 log Not Found: /service-worker.js
+WARNING 2026-04-28 17:24:29,740 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 17:24:29,740 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 17:24:30,486 basehttp "GET /login/ HTTP/1.1" 200 7633
+INFO 2026-04-28 17:24:30,486 basehttp "GET /login/ HTTP/1.1" 200 7633
+WARNING 2026-04-28 17:24:33,089 log Not Found: /service-worker.js
+WARNING 2026-04-28 17:24:33,089 log Not Found: /service-worker.js
+WARNING 2026-04-28 17:24:33,090 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 17:24:33,090 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 17:24:43,105 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2026-04-28 17:24:43,105 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2026-04-28 17:24:43,142 basehttp "GET / HTTP/1.1" 200 18240
+INFO 2026-04-28 17:24:43,142 basehttp "GET / HTTP/1.1" 200 18240
+WARNING 2026-04-28 17:24:45,894 log Not Found: /service-worker.js
+WARNING 2026-04-28 17:24:45,894 log Not Found: /service-worker.js
+WARNING 2026-04-28 17:24:45,895 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 17:24:45,895 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 17:24:56,658 log Not Found: /service-worker.js
+WARNING 2026-04-28 17:24:56,658 log Not Found: /service-worker.js
+WARNING 2026-04-28 17:24:56,659 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 17:24:56,659 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 17:26:07,296 autoreload D:\fms\core\services\__init__.py changed, reloading.
+INFO 2026-04-28 17:26:07,296 autoreload D:\fms\core\services\__init__.py changed, reloading.
+INFO 2026-04-28 17:26:08,253 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:26:08,253 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:26:36,878 autoreload D:\fms\core\models.py changed, reloading.
+INFO 2026-04-28 17:26:36,878 autoreload D:\fms\core\models.py changed, reloading.
+INFO 2026-04-28 17:26:38,422 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:26:38,422 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:26:53,754 autoreload D:\fms\core\forms.py changed, reloading.
+INFO 2026-04-28 17:26:53,754 autoreload D:\fms\core\forms.py changed, reloading.
+INFO 2026-04-28 17:26:54,648 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:26:54,648 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:28:01,437 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:28:01,437 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:28:04,053 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:28:04,053 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:28:58,427 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:28:58,427 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:28:59,497 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:28:59,497 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:29:55,841 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:29:55,841 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:29:57,337 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:29:57,337 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:30:37,098 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:30:37,098 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:30:38,582 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:30:38,582 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:31:33,685 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:31:33,685 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:31:35,345 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:31:35,345 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:32:16,149 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:32:16,149 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:32:17,444 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:32:17,444 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:32:57,112 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:32:57,112 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:32:58,436 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:32:58,436 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:33:37,257 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:33:37,257 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:33:38,279 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:33:38,279 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:34:22,485 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:34:22,485 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:34:23,551 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:34:23,551 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:35:08,576 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:35:08,576 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:35:09,532 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:35:09,532 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:36:00,539 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:36:00,539 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:36:01,565 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:36:01,565 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:42:14,113 basehttp "GET / HTTP/1.1" 200 17928
+INFO 2026-04-28 17:42:14,113 basehttp "GET / HTTP/1.1" 200 17928
+WARNING 2026-04-28 17:42:19,194 log Not Found: /service-worker.js
+WARNING 2026-04-28 17:42:19,194 log Not Found: /service-worker.js
+WARNING 2026-04-28 17:42:19,199 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 17:42:19,199 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 17:42:42,815 log Not Found: /service-worker.js
+WARNING 2026-04-28 17:42:42,815 log Not Found: /service-worker.js
+WARNING 2026-04-28 17:42:42,816 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+WARNING 2026-04-28 17:42:42,816 basehttp "GET /service-worker.js HTTP/1.1" 404 18103
+INFO 2026-04-28 17:42:55,481 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:42:55,481 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:42:57,582 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:42:57,582 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:43:34,978 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:43:34,978 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:43:36,463 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:43:36,463 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:44:14,249 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:44:14,249 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:44:16,131 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:44:16,131 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:44:52,376 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:44:52,376 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:44:53,750 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:44:53,750 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:45:26,080 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:45:26,080 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:45:27,140 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:45:27,140 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:45:50,604 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:45:50,604 autoreload D:\fms\core\views.py changed, reloading.
+INFO 2026-04-28 17:45:52,844 autoreload Watching for file changes with StatReloader
+INFO 2026-04-28 17:45:52,844 autoreload Watching for file changes with StatReloader
+ERROR 2026-04-28 17:48:32,433 log Internal Server Error: /planifications/1/
+Traceback (most recent call last):
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 875, in _resolve_lookup
+    current = current[bit]
+              ~~~~~~~^^^^^
+TypeError: 'Planification' object is not subscriptable
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 885, in _resolve_lookup
+    current = getattr(current, bit)
+AttributeError: 'Planification' object has no attribute 'statut'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 891, in _resolve_lookup
+    current = current[int(bit)]
+                      ~~~^^^^^
+ValueError: invalid literal for int() with base 10: 'statut'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\test\utils.py", line 111, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\test\utils.py", line 111, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1059, in render
+    output = self.filter_expression.resolve(context)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 731, in resolve
+    arg_vals.append(arg.resolve(context))
+                    ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 842, in resolve
+    value = self._resolve_lookup(context)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 898, in _resolve_lookup
+    raise VariableDoesNotExist(
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )  # missing attribute
+    ^
+django.template.base.VariableDoesNotExist: Failed lookup for key [statut] in <Planification: Planification Vidange - Toyota Land Cruiser - MT-001-AA - Échéance: 15000 km>
+ERROR 2026-04-28 17:48:32,433 log Internal Server Error: /planifications/1/
+Traceback (most recent call last):
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 875, in _resolve_lookup
+    current = current[bit]
+              ~~~~~~~^^^^^
+TypeError: 'Planification' object is not subscriptable
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 885, in _resolve_lookup
+    current = getattr(current, bit)
+AttributeError: 'Planification' object has no attribute 'statut'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 891, in _resolve_lookup
+    current = current[int(bit)]
+                      ~~~^^^^^
+ValueError: invalid literal for int() with base 10: 'statut'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\test\utils.py", line 111, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\test\utils.py", line 111, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 1059, in render
+    output = self.filter_expression.resolve(context)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 731, in resolve
+    arg_vals.append(arg.resolve(context))
+                    ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 842, in resolve
+    value = self._resolve_lookup(context)
+  File "C:\Users\soung\AppData\Roaming\Python\Python313\site-packages\django\template\base.py", line 898, in _resolve_lookup
+    raise VariableDoesNotExist(
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )  # missing attribute
+    ^
+django.template.base.VariableDoesNotExist: Failed lookup for key [statut] in <Planification: Planification Vidange - Toyota Land Cruiser - MT-001-AA - Échéance: 15000 km>

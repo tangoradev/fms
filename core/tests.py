@@ -2,6 +2,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import HttpResponse
 from django.test import TestCase
 from django.urls import reverse
@@ -9,6 +10,7 @@ from django.utils import timezone
 
 from .forms import DemandeCarteCarburantTraitementForm
 from .services import build_releve_consommation_context, close_demande, reject_demande, validate_demande
+from .services import persist_maintenance_with_business_rules
 from .models import (
     Achat_Stock_Carburant_HT,
     Achat_Carburant_TTC,
@@ -19,10 +21,13 @@ from .models import (
     Rechargement_Carte_Carburant_HT,
     Rechargement_Carte_Carburant_TTC,
     Service,
+    TypeMaintenance,
     Utilisateur,
     Vehicule,
     VehiculeAffectation,
     VehiculeDocument,
+    Maintenance,
+    Planification,
 )
 
 
@@ -439,3 +444,130 @@ class FuelModuleTests(TestCase):
 
         self.assertEqual(context['dotation'], achat)
         self.assertIn('CARD-RPT-001', context['consommations'])
+
+
+class MaintenanceModuleTests(TestCase):
+    def setUp(self):
+        self.service = Service.objects.create(nom_service="Service Maintenance")
+        self.other_service = Service.objects.create(nom_service="Autre Service")
+
+        self.group_maintenance = Groupe.objects.create(nom_groupe="Gestionnaire Maintenance")
+        self.group_driver_principal = Groupe.objects.create(nom_groupe="Driver Principal")
+        self.group_driver = Groupe.objects.create(nom_groupe="Driver")
+
+        self.authorized_user = Utilisateur.objects.create_user(
+            email="maintenance.manager@example.com",
+            nom_complet="Maintenance Manager",
+            password="pass12345",
+        )
+        self.authorized_user.groupe.add(self.group_maintenance)
+        self.authorized_user.service.add(self.service)
+
+        self.driver_principal = Utilisateur.objects.create_user(
+            email="driver.principal@example.com",
+            nom_complet="Driver Principal",
+            password="pass12345",
+        )
+        self.driver_principal.groupe.add(self.group_driver_principal)
+        self.driver_principal.service.add(self.service)
+
+        self.unauthorized_user = Utilisateur.objects.create_user(
+            email="driver@example.com",
+            nom_complet="Driver",
+            password="pass12345",
+        )
+        self.unauthorized_user.groupe.add(self.group_driver)
+        self.unauthorized_user.service.add(self.service)
+
+        self.vehicule = Vehicule.objects.create(
+            service=self.service,
+            marque="Toyota",
+            modele="Land Cruiser",
+            chassis="CHS-MNT-001",
+            immatriculation="MT-001-AA",
+            type_carburant="Gasoil",
+            date_mise_en_service=timezone.now().date() - timedelta(days=500),
+            kilometrage=10000,
+            statut="Disponible",
+        )
+        self.other_vehicule = Vehicule.objects.create(
+            service=self.other_service,
+            marque="Nissan",
+            modele="Patrol",
+            chassis="CHS-MNT-002",
+            immatriculation="MT-002-BB",
+            type_carburant="Gasoil",
+            date_mise_en_service=timezone.now().date() - timedelta(days=300),
+            kilometrage=8000,
+            statut="Disponible",
+        )
+
+        self.fournisseur = Fournisseur.objects.create(
+            nom_fournisseur="Garage Central",
+            type_fournisseur="Maintenance",
+        )
+        self.type_maintenance = TypeMaintenance.objects.create(libelle="Vidange")
+
+    def _build_maintenance(self, **overrides):
+        data = {
+            'service': self.service,
+            'vehicule': self.vehicule,
+            'type_maintenance': self.type_maintenance,
+            'detail': 'Vidange complète',
+            'fournisseur': self.fournisseur,
+            'date': timezone.now().date(),
+            'km_vehicule': 12000,
+            'montant': 35000,
+            'periodicite_km': 5000,
+            'alerte_km': 500,
+            'periodicite_mois': 6,
+            'alerte_mois': 1,
+            'facture': SimpleUploadedFile('facture.pdf', b'PDF', content_type='application/pdf'),
+        }
+        data.update(overrides)
+        return Maintenance(**data)
+
+    def test_maintenance_validation_rejects_service_vehicle_mismatch(self):
+        maintenance = self._build_maintenance(vehicule=self.other_vehicule)
+        with self.assertRaises(ValidationError):
+            maintenance.full_clean()
+
+    def test_persist_maintenance_syncs_planification_and_updates_mileage(self):
+        maintenance = self._build_maintenance()
+
+        planification, created = persist_maintenance_with_business_rules(
+            maintenance,
+            fallback_user=self.driver_principal,
+        )
+
+        self.assertTrue(created)
+        self.assertIsNotNone(planification)
+        self.vehicule.refresh_from_db()
+        self.assertEqual(self.vehicule.kilometrage, 12000)
+        self.assertEqual(planification.prochaine_echeance_km, 17000)
+        self.assertEqual(planification.utilisateur, self.driver_principal)
+
+    def test_maintenance_report_access_denied_for_unauthorized_user(self):
+        self.client.force_login(self.unauthorized_user)
+        response = self.client.get(reverse('maintenance_report'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('home'))
+
+    def test_planification_routes_use_pk_kwarg(self):
+        planification = Planification.objects.create(
+            service=self.service,
+            utilisateur=self.driver_principal,
+            vehicule=self.vehicule,
+            type_maintenance=self.type_maintenance,
+            prochaine_echeance_km=15000,
+            alerte_km=500,
+        )
+
+        self.client.force_login(self.authorized_user)
+        update_response = self.client.get(reverse('planification_update', kwargs={'pk': planification.pk}))
+        delete_response = self.client.get(reverse('planification_delete', kwargs={'pk': planification.pk}))
+        detail_response = self.client.get(reverse('planification_detail', kwargs={'pk': planification.pk}))
+
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertEqual(detail_response.status_code, 200)

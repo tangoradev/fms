@@ -48,7 +48,14 @@ from .forms import (
     PlanificationCourseForm, VehiculeStatusForm, VehiculeAffectationForm, VehiculeDocumentForm
 )
 from .utils import notify_fuel_managers_new_request, notify_driver_request_processed, get_french_month_name, notify_driver_principal_course, notify_course_rejected, notify_course_affectation, generate_pdf_from_template
-from .services import build_releve_consommation_context, close_demande, reject_demande, validate_demande
+from .services import (
+    build_releve_consommation_context,
+    close_demande,
+    persist_maintenance_with_business_rules,
+    reject_demande,
+    sync_planification_for_maintenance,
+    validate_demande,
+)
 import json
 import calendar
 import xlsxwriter
@@ -2910,6 +2917,11 @@ def get_cartes_by_dotation(request):
     return JsonResponse({'cartes': cartes, 'cartes_ids': cartes_ids, 'cartes_data': cartes_data})
 
 # Views pour les Types de Maintenance
+def _has_maintenance_access(user):
+    user_groups = set(user.groupe.values_list('nom_groupe', flat=True))
+    return user.is_staff or bool(user_groups.intersection({'Driver Principal', 'Gestionnaire Carburant', 'Gestionnaire Maintenance'}))
+
+
 class TypeMaintenanceListView(LoginRequiredMixin, ListView):
     model = TypeMaintenance
     template_name = 'core/type_maintenance/list.html'
@@ -2917,9 +2929,7 @@ class TypeMaintenanceListView(LoginRequiredMixin, ListView):
     ordering = ['libelle']
     
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -2941,9 +2951,7 @@ class TypeMaintenanceCreateView(LoginRequiredMixin, CreateView):
         return context
         
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -2962,9 +2970,7 @@ class TypeMaintenanceUpdateView(LoginRequiredMixin, UpdateView):
         return context
         
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -2976,9 +2982,7 @@ class TypeMaintenanceDeleteView(LoginRequiredMixin, DeleteView):
     pk_url_kwarg = 'id'
     
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -2991,9 +2995,7 @@ class MaintenanceListView(LoginRequiredMixin, ListView):
     ordering = ['-date']
     
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -3020,9 +3022,7 @@ class MaintenanceCreateView(LoginRequiredMixin, CreateView):
         return kwargs
         
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -3046,75 +3046,24 @@ class MaintenanceUpdateView(LoginRequiredMixin, UpdateView):
         return kwargs
         
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
     
     def form_valid(self, form):
-        response = super().form_valid(form)
-        maintenance = self.object
-        
-        # Mettre à jour ou créer une planification si des périodicités sont définies
-        if maintenance.periodicite_km or maintenance.periodicite_mois:
-            # Calculer les prochaines échéances
-            prochaine_echeance_km = None
-            if maintenance.periodicite_km:
-                prochaine_echeance_km = maintenance.km_vehicule + maintenance.periodicite_km
-            
-            prochaine_echeance_date = None
-            if maintenance.periodicite_mois:
-                from datetime import datetime
-                from dateutil.relativedelta import relativedelta
-                prochaine_echeance_date = maintenance.date + relativedelta(months=maintenance.periodicite_mois)
-            
-            # Chercher un utilisateur du groupe "Driver Principal" lié au service
-            driver_principal = Utilisateur.objects.filter(
-                groupe__nom_groupe='Driver Principal',
-                service=maintenance.service
-            ).first()
-            
-            # Si aucun utilisateur "Driver Principal" n'est trouvé, utiliser l'utilisateur actuel
-            if not driver_principal:
-                driver_principal = self.request.user
-            
-            # Chercher une planification existante pour ce véhicule et ce type de maintenance
-            planification = Planification.objects.filter(
-                vehicule=maintenance.vehicule,
-                type_maintenance=maintenance.type_maintenance
-            ).first()
-            
-            if planification:
-                # Mettre à jour la planification existante
-                planification.service = maintenance.service
-                planification.utilisateur = driver_principal
-                planification.prochaine_echeance_km = prochaine_echeance_km if prochaine_echeance_km else 0
-                planification.prochaine_echeance_date = prochaine_echeance_date
-                planification.alerte_km = maintenance.alerte_km
-                planification.alerte_mois = maintenance.alerte_mois
-                planification.save()
-                
-                messages.success(self.request, 
-                               f"La maintenance a été modifiée et la planification a été mise à jour.")
+        self.object = form.save(commit=False)
+        planification, created = persist_maintenance_with_business_rules(self.object, fallback_user=self.request.user)
+
+        if planification is not None:
+            if created:
+                messages.success(self.request, "La maintenance a été modifiée et une planification a été générée pour la prochaine échéance.")
             else:
-                # Créer une nouvelle planification
-                Planification.objects.create(
-                    service=maintenance.service,
-                    utilisateur=driver_principal,
-                    vehicule=maintenance.vehicule,
-                    type_maintenance=maintenance.type_maintenance,
-                    prochaine_echeance_km=prochaine_echeance_km if prochaine_echeance_km else 0,
-                    prochaine_echeance_date=prochaine_echeance_date,
-                    alerte_km=maintenance.alerte_km,
-                    alerte_mois=maintenance.alerte_mois
-                )
-                
-                messages.success(self.request, 
-                               f"La maintenance a été modifiée et une planification a été générée pour la prochaine échéance.")
-        
-        return response
+                messages.success(self.request, "La maintenance a été modifiée et la planification a été mise à jour.")
+        else:
+            messages.success(self.request, "La maintenance a été modifiée avec succès.")
+
+        return HttpResponseRedirect(self.get_success_url())
 
 # Views pour les Planifications
 class PlanificationListView(LoginRequiredMixin, ListView):
@@ -3139,9 +3088,7 @@ class PlanificationListView(LoginRequiredMixin, ListView):
         return context
     
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -3164,9 +3111,7 @@ class PlanificationCreateView(LoginRequiredMixin, CreateView):
         return kwargs
         
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -3176,7 +3121,7 @@ class PlanificationUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'core/planification/form.html'
     form_class = PlanificationForm
     success_url = reverse_lazy('planification_list')
-    pk_url_kwarg = 'id'
+    pk_url_kwarg = 'pk'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -3190,9 +3135,7 @@ class PlanificationUpdateView(LoginRequiredMixin, UpdateView):
         return kwargs
         
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -3201,12 +3144,10 @@ class PlanificationDeleteView(LoginRequiredMixin, DeleteView):
     model = Planification
     template_name = 'core/planification/delete.html'
     success_url = reverse_lazy('planification_list')
-    pk_url_kwarg = 'id'
+    pk_url_kwarg = 'pk'
     
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -3215,12 +3156,10 @@ class PlanificationDetailView(LoginRequiredMixin, DetailView):
     model = Planification
     template_name = 'core/planification/detail.html'
     context_object_name = 'planification'
-    pk_url_kwarg = 'id'
+    pk_url_kwarg = 'pk'
     
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -3270,56 +3209,21 @@ class MaintenanceCreateView(LoginRequiredMixin, CreateView):
         return kwargs
         
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
     
     def form_valid(self, form):
-        response = super().form_valid(form)
-        maintenance = self.object
-        
-        # Créer une planification si des périodicités sont définies
-        if maintenance.periodicite_km or maintenance.periodicite_mois:
-            # Calculer les prochaines échéances
-            prochaine_echeance_km = None
-            if maintenance.periodicite_km:
-                prochaine_echeance_km = maintenance.km_vehicule + maintenance.periodicite_km
-            
-            prochaine_echeance_date = None
-            if maintenance.periodicite_mois:
-                from datetime import datetime
-                from dateutil.relativedelta import relativedelta
-                prochaine_echeance_date = maintenance.date + relativedelta(months=maintenance.periodicite_mois)
-            
-            # Chercher un utilisateur du groupe "Driver Principal" lié au service
-            driver_principal = Utilisateur.objects.filter(
-                groupe__nom_groupe='Driver Principal',
-                service=maintenance.service
-            ).first()
-            
-            # Si aucun utilisateur "Driver Principal" n'est trouvé, utiliser l'utilisateur actuel
-            if not driver_principal:
-                driver_principal = self.request.user
-            
-            # Créer la planification
-            Planification.objects.create(
-                service=maintenance.service,
-                utilisateur=driver_principal,
-                vehicule=maintenance.vehicule,
-                type_maintenance=maintenance.type_maintenance,
-                prochaine_echeance_km=prochaine_echeance_km if prochaine_echeance_km else 0,
-                prochaine_echeance_date=prochaine_echeance_date,
-                alerte_km=maintenance.alerte_km,
-                alerte_mois=maintenance.alerte_mois
-            )
-            
-            messages.success(self.request, 
-                           f"La maintenance a été créée et une planification a été générée pour la prochaine échéance.")
-        
-        return response
+        self.object = form.save(commit=False)
+        planification, _ = persist_maintenance_with_business_rules(self.object, fallback_user=self.request.user)
+
+        if planification is not None:
+            messages.success(self.request, "La maintenance a été créée et une planification a été générée pour la prochaine échéance.")
+        else:
+            messages.success(self.request, "La maintenance a été créée avec succès.")
+
+        return HttpResponseRedirect(self.get_success_url())
 
 class MaintenanceDeleteView(LoginRequiredMixin, DeleteView):
     model = Maintenance
@@ -3328,9 +3232,7 @@ class MaintenanceDeleteView(LoginRequiredMixin, DeleteView):
     pk_url_kwarg = 'id'
     
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -3342,9 +3244,7 @@ class MaintenanceDetailView(LoginRequiredMixin, DetailView):
     pk_url_kwarg = 'id'
     
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -3371,9 +3271,7 @@ class PlanificationListView(LoginRequiredMixin, ListView):
         return context
     
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -3401,11 +3299,11 @@ class MaintenanceReportView(LoginRequiredMixin, TemplateView):
         # Si un service spécifique est sélectionné, filtrer les véhicules
         if service_id:
             context['vehicules'] = context['vehicules'].filter(service__id_service=service_id)
-            context['selected_service'] = Service.objects.get(id_service=service_id)
+            context['selected_service'] = Service.objects.filter(id_service=service_id, id_service__in=services_ids).first()
         
         # Si un véhicule spécifique est sélectionné
         if vehicule_id:
-            context['selected_vehicule'] = Vehicule.objects.get(id_vehicule=vehicule_id)
+            context['selected_vehicule'] = Vehicule.objects.filter(id_vehicule=vehicule_id, service__id_service__in=services_ids).first()
         
         # Initialiser la requête de base pour les maintenances
         maintenances = Maintenance.objects.filter(service__id_service__in=services_ids)
@@ -3470,15 +3368,19 @@ class MaintenanceReportView(LoginRequiredMixin, TemplateView):
         return context
     
     def dispatch(self, request, *args, **kwargs):
-        # Vérifier si l'utilisateur est staff ou appartient aux groupes autorisés
-        user_groups = [group.nom_groupe for group in request.user.groupe.all()]
-        if not (request.user.is_staff or 'Driver Principal' in user_groups or 'Gestionnaire Carburant' in user_groups):
+        if not _has_maintenance_access(request.user):
             messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
 
 # Vues pour l'exportation des rapports de maintenance
 class MaintenanceReportExportPDF(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        if not _has_maintenance_access(request.user):
+            messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
+            return redirect('home')
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         # Récupérer les paramètres de filtrage
         date_debut = request.GET.get('date_debut')
@@ -3539,7 +3441,17 @@ class MaintenanceReportExportPDF(LoginRequiredMixin, View):
         elements.append(Spacer(1, 12))
         
         # Sous-titre avec les filtres
-        filter_text = f"Service: {Service.objects.get(id_service=service_id).nom_service if service_id else 'Tous'} | Véhicule: {Vehicule.objects.get(id_vehicule=vehicule_id).immatriculation if vehicule_id else 'Tous'}"
+        service_name = 'Tous'
+        if service_id:
+            service_obj = Service.objects.filter(id_service=service_id, id_service__in=services_ids).first()
+            service_name = service_obj.nom_service if service_obj else 'Tous'
+
+        vehicule_name = 'Tous'
+        if vehicule_id:
+            vehicule_obj = Vehicule.objects.filter(id_vehicule=vehicule_id, service__id_service__in=services_ids).first()
+            vehicule_name = vehicule_obj.immatriculation if vehicule_obj else 'Tous'
+
+        filter_text = f"Service: {service_name} | Véhicule: {vehicule_name}"
         if date_debut and date_fin:
             filter_text += f" | Période: du {date_debut} au {date_fin}"
         elif date_debut:
@@ -3635,6 +3547,12 @@ class MaintenanceReportExportPDF(LoginRequiredMixin, View):
         return response
 
 class MaintenanceReportExportExcel(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        if not _has_maintenance_access(request.user):
+            messages.error(request, "Vous n'avez pas les permissions nécessaires pour accéder à cette page.")
+            return redirect('home')
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         # Récupérer les paramètres de filtrage
         date_debut = request.GET.get('date_debut')
@@ -3761,9 +3679,10 @@ class MaintenanceReportExportExcel(LoginRequiredMixin, View):
                 row_num += 1
         
         # Créer la réponse HTTP
-        response = HttpResponse(content_type='application/ms-excel')
+        output = BytesIO()
+        wb.save(output)
+        response = HttpResponse(output.getvalue(), content_type='application/ms-excel')
         response['Content-Disposition'] = 'attachment; filename="rapport_maintenance.xls"'
-        response.write(wb.save('rapport_maintenance.xls'))
         
         return response
 

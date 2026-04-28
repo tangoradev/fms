@@ -21,25 +21,17 @@
     
     <div class="card shadow mb-4">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Détail de la planification de course</h5>
+            <h5 class="mb-0">Synthèse de la planification</h5>
         </div>
         <div class="card-body">
             <ul class="list-unstyled mb-0">
-                <li><strong>Chauffeur :</strong> {{ planification.utilisateur.get_full_name|default:planification.utilisateur }}</li>
+                <li><strong>Responsable :</strong> {{ planification.utilisateur.get_full_name|default:planification.utilisateur }}</li>
                 <li><strong>Véhicule :</strong> {{ planification.vehicule }}</li>
-                <li><strong>Date & Heure :</strong> {{ planification.date_heure|date:'d F Y H:i' }}</li>
-                <li><strong>Lieu :</strong> {{ planification.lieu_arrivee }}</li>
-                <li><strong>Statut :</strong> {{ planification.get_statut_display|default:planification.statut }}</li>
+                <li><strong>Type de maintenance :</strong> {{ planification.type_maintenance.libelle }}</li>
+                <li><strong>Statut :</strong> {{ planification.get_statut }}</li>
             </ul>
         </div>
     </div>
-    {% if request.user.pk == planification.utilisateur.pk %}
-        <div class="mb-3">
-            <a href="{% url 'execution_course_create' planification.id %}" class="btn btn-success">
-                Saisir l'exécution de la course
-            </a>
-        </div>
-    {% endif %}
     
     <div class="row">
         <div class="col-md-6">
@@ -64,10 +56,6 @@
                         <tr>
                             <th>Utilisateur responsable</th>
                             <td>{{ planification.utilisateur.first_name }} {{ planification.utilisateur.last_name }}</td>
-                        </tr>
-                        <tr>
-                            <th>Lieu d'arrivée</th>
-                            <td>{{ planification.lieu_arrivee }}</td>
                         </tr>
                         <tr>
                             <th>Statut</th>

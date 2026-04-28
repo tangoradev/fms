@@ -705,6 +705,24 @@ class MaintenanceForm(forms.ModelForm):
     
     def clean(self):
         cleaned_data = super().clean()
+        service = cleaned_data.get('service')
+        vehicule = cleaned_data.get('vehicule')
+        periodicite_km = cleaned_data.get('periodicite_km')
+        alerte_km = cleaned_data.get('alerte_km')
+        periodicite_mois = cleaned_data.get('periodicite_mois')
+        alerte_mois = cleaned_data.get('alerte_mois')
+
+        if service and vehicule and vehicule.service_id != service.id_service:
+            self.add_error('vehicule', "Le véhicule sélectionné n'appartient pas au service choisi.")
+
+        if periodicite_km and alerte_km and alerte_km >= periodicite_km:
+            self.add_error('alerte_km', "L'alerte km doit être strictement inférieure à la périodicité km.")
+
+        if periodicite_mois and alerte_mois and alerte_mois >= periodicite_mois:
+            self.add_error('alerte_mois', "L'alerte mois doit être strictement inférieure à la périodicité en mois.")
+
+        if (alerte_km and not periodicite_km) or (alerte_mois and not periodicite_mois):
+            raise forms.ValidationError("Une alerte ne peut pas être définie sans périodicité correspondante.")
         
         return cleaned_data
     
@@ -750,6 +768,25 @@ class PlanificationForm(forms.ModelForm):
                 groupe__nom_groupe='Driver Principal',
                 service__id_service__in=services_ids
             ).distinct()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        service = cleaned_data.get('service')
+        vehicule = cleaned_data.get('vehicule')
+        utilisateur = cleaned_data.get('utilisateur')
+        prochaine_echeance_km = cleaned_data.get('prochaine_echeance_km')
+        alerte_km = cleaned_data.get('alerte_km')
+
+        if service and vehicule and vehicule.service_id != service.id_service:
+            self.add_error('vehicule', "Le véhicule sélectionné n'appartient pas au service choisi.")
+
+        if service and utilisateur and not utilisateur.service.filter(id_service=service.id_service).exists():
+            self.add_error('utilisateur', "L'utilisateur responsable doit appartenir au service sélectionné.")
+
+        if alerte_km and prochaine_echeance_km and alerte_km >= prochaine_echeance_km:
+            self.add_error('alerte_km', "L'alerte km doit être strictement inférieure à l'échéance kilométrique.")
+
+        return cleaned_data
     
     class Meta:
         model = Planification

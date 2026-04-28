@@ -1111,6 +1111,35 @@ class Maintenance(models.Model):
     
     def __str__(self):
         return f"Maintenance {self.type_maintenance} - {self.vehicule} - {self.date}"
+
+    def clean(self):
+        super().clean()
+
+        if self.vehicule_id and self.service_id and self.vehicule.service_id != self.service_id:
+            raise ValidationError("Le véhicule sélectionné n'appartient pas au service de la maintenance.")
+
+        if self.fournisseur_id and self.fournisseur.type_fournisseur != 'Maintenance':
+            raise ValidationError({'fournisseur': "Le fournisseur doit être de type maintenance."})
+
+        if self.km_vehicule is not None and self.km_vehicule <= 0:
+            raise ValidationError({'km_vehicule': "Le kilométrage doit être supérieur à zéro."})
+
+        if self.montant is not None and self.montant <= 0:
+            raise ValidationError({'montant': "Le montant doit être supérieur à zéro."})
+
+        if self.periodicite_km and self.alerte_km and self.alerte_km >= self.periodicite_km:
+            raise ValidationError({'alerte_km': "L'alerte km doit être strictement inférieure à la périodicité km."})
+
+        if self.periodicite_mois and self.alerte_mois and self.alerte_mois >= self.periodicite_mois:
+            raise ValidationError({'alerte_mois': "L'alerte mois doit être strictement inférieure à la périodicité en mois."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+        if self.vehicule and self.km_vehicule and self.km_vehicule > self.vehicule.kilometrage:
+            self.vehicule.kilometrage = self.km_vehicule
+            self.vehicule.save(update_fields=['kilometrage'])
     
     def format_montant(self):
         """
@@ -1151,6 +1180,21 @@ class Planification(models.Model):
     
     def __str__(self):
         return f"Planification {self.type_maintenance} - {self.vehicule} - Échéance: {self.prochaine_echeance_km} km"
+
+    def clean(self):
+        super().clean()
+
+        if self.vehicule_id and self.service_id and self.vehicule.service_id != self.service_id:
+            raise ValidationError("Le véhicule sélectionné n'appartient pas au service de la planification.")
+
+        if self.utilisateur_id and self.service_id and not self.utilisateur.service.filter(id_service=self.service_id).exists():
+            raise ValidationError({'utilisateur': "L'utilisateur responsable doit appartenir au service sélectionné."})
+
+        if self.prochaine_echeance_km is not None and self.prochaine_echeance_km <= 0:
+            raise ValidationError({'prochaine_echeance_km': "L'échéance kilométrique doit être supérieure à zéro."})
+
+        if self.alerte_km and self.prochaine_echeance_km and self.alerte_km >= self.prochaine_echeance_km:
+            raise ValidationError({'alerte_km': "L'alerte km doit être strictement inférieure à l'échéance km."})
     
     def est_en_alerte_km(self):
         """
