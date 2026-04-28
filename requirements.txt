@@ -9,3 +9,4 @@ mysqlclient==2.2.4 # Pour la production avec MySQL
 whitenoise==6.6.0 # Pour servir les fichiers statiques en production
 gunicorn==21.2.0 # Pour le déploiement en production
 python-dotenv==1.0.1 # Pour gérer les variables d'environnement
+xhtml2pdf==0.2.15
