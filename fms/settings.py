@@ -12,21 +12,42 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+
+def _env_bool(name, default=False):
+    return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_list(name, default=None):
+    raw_value = os.getenv(name)
+    if not raw_value:
+        return default or []
+    return [item.strip() for item in raw_value.split(",") if item.strip()]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-8^h5o^1*)0d5u$j!2_65d%qq(t6in^f#9h@abj#5e474*t0)y%'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-8^h5o^1*)0d5u$j!2_65d%qq(t6in^f#9h@abj#5e474*t0)y%')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = _env_bool('DEBUG', True)
 
-ALLOWED_HOSTS = ['127.0.0.1', '10.20.160.77', 'localhost', 'fms.undpciv.org', 'www.fms.undpciv.org']
+ALLOWED_HOSTS = _env_list('ALLOWED_HOSTS', [
+    '127.0.0.1',
+    '10.20.160.77',
+    'localhost',
+    'fms.undpciv.org',
+    'www.fms.undpciv.org',
+    'fmsdemo.undpciv.org',
+    'www.fmsdemo.undpciv.org',
+])
 
 
 # Application definition
@@ -147,21 +168,26 @@ EMAIL_HOST_PASSWORD = 'Pnud2016'
 DEFAULT_FROM_EMAIL = 'FMS - Fleet Management System <fms@undpciv.org>'
 
 # URL de base pour les liens dans les emails
-BASE_URL = 'http://10.20.160.77:8000'
+BASE_URL = os.getenv('BASE_URL', 'http://10.20.160.77:8000')
 
 # Configuration CSRF pour la production
-CSRF_TRUSTED_ORIGINS = [
+CSRF_TRUSTED_ORIGINS = _env_list('CSRF_TRUSTED_ORIGINS', [
     'http://fms.undpciv.org',
     'https://fms.undpciv.org',
     'http://www.fms.undpciv.org',
     'https://www.fms.undpciv.org',
+    'http://fmsdemo.undpciv.org',
+    'https://fmsdemo.undpciv.org',
+    'http://www.fmsdemo.undpciv.org',
+    'https://www.fmsdemo.undpciv.org',
     'http://10.20.160.77:8000',
-]
+])
 
 # Configuration des cookies CSRF
-CSRF_COOKIE_SECURE = False  # Mettre True si vous utilisez HTTPS
+CSRF_COOKIE_SECURE = _env_bool('CSRF_COOKIE_SECURE', not DEBUG)
 CSRF_COOKIE_HTTPONLY = False  # Doit être False pour que JavaScript puisse accéder au token
 CSRF_COOKIE_SAMESITE = 'Lax'  # Protection contre les attaques CSRF cross-site
+SESSION_COOKIE_SECURE = _env_bool('SESSION_COOKIE_SECURE', not DEBUG)
 
 # Configuration de l'authentification
 LOGIN_URL = '/login/'
